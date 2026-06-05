@@ -5,7 +5,7 @@
 	import HeroCard from '$lib/features/transactions/components/HeroCard.svelte';
 	import MonthlyStats from '$lib/features/transactions/components/MonthlyStats.svelte';
 	import TransactionList from '$lib/features/transactions/components/TransactionList.svelte';
-	import { Plus } from '@lucide/svelte';
+	import { Plus, User } from '@lucide/svelte';
 
 	onMount(() => {
 		transactionStore.load();
@@ -16,9 +16,14 @@
 <div class="p-4 pt-8 h-full flex flex-col relative">
 	<header class="mb-6 px-1 flex justify-between items-center">
 		<h1 class="text-2xl font-bold tracking-tight text-slate-900">Übersicht</h1>
-		<a href="/history" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
-			Historie
-		</a>
+		<div class="flex items-center gap-4">
+			<a href="/history" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+				Historie
+			</a>
+			<a href="/profile" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors">
+				<User size={18} />
+			</a>
+		</div>
 	</header>
 	
 	<HeroCard />

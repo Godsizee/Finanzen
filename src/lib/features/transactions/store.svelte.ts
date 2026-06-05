@@ -2,6 +2,7 @@ import { transactionApi, type TransactionCreate } from './api';
 import type { RecordModel } from 'pocketbase';
 import { calculateBalance } from '$lib/core/math';
 import { toast } from '$lib/core/toastStore.svelte';
+import { authStore } from '$lib/features/auth/authStore.svelte';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
@@ -26,20 +27,19 @@ class TransactionStore {
 
 	unsettledTransactions = $derived(this.transactions.filter(tx => !tx.settlement_id));
 	
-	// Kasse derived states (computed from all transactions to maintain correct physical cash balance)
 	kasseDeposits = $derived(this.transactions.filter(tx => tx.split_mode === 'deposit').reduce((acc, tx) => acc + tx.total_amount, 0));
 	kasseExpenses = $derived(this.transactions.filter(tx => tx.split_mode === 'kasse').reduce((acc, tx) => acc + tx.total_amount, 0));
 	kasseBalance = $derived(this.kasseDeposits - this.kasseExpenses);
 
 	// Derived states for balances based ONLY on unsettled transactions
-	balanceUserA = $derived(this.calculateTotalBalance('a'));
-	balanceUserB = $derived(this.calculateTotalBalance('b'));
+	myBalance = $derived(this.calculateTotalBalance());
 
-
-	private calculateTotalBalance(user: 'a' | 'b'): number {
+	private calculateTotalBalance(): number {
+		const myId = authStore.currentUser?.id;
+		if (!myId) return 0;
 		return this.unsettledTransactions.reduce((acc, tx) => {
-			const paid = user === 'a' ? tx.paid_amount_user_a : tx.paid_amount_user_b;
-			return acc + calculateBalance(tx.total_amount, paid, tx.split_mode);
+			const didIPay = tx.paid_by === myId;
+			return acc + calculateBalance(tx.total_amount, tx.split_mode, didIPay);
 		}, 0);
 	}
 

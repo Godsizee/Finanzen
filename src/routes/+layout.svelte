@@ -2,8 +2,21 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Toaster from '$lib/ui/Toaster.svelte';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 
 	let { children } = $props();
+
+	// Auth Guard
+	$effect(() => {
+		const isAuthRoute = $page.url.pathname === '/login' || $page.url.pathname === '/register';
+		if (!authStore.isLoggedIn && !isAuthRoute) {
+			goto('/login');
+		} else if (authStore.isLoggedIn && isAuthRoute) {
+			goto('/');
+		}
+	});
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>

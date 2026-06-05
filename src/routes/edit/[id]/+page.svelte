@@ -5,6 +5,8 @@
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { toCents } from '$lib/core/math';
 	import { toast } from '$lib/core/toastStore.svelte';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import { ArrowLeft, Trash2, ShoppingBag, Home, Sparkles, Car, CircleEllipsis } from '@lucide/svelte';
@@ -24,7 +26,7 @@
 	let type = $state<'expense' | 'deposit'>('expense');
 	let amount = $state('');
 	let note = $state('');
-	let payer = $state<'a' | 'b' | 'kasse'>('a');
+	let payer = $state<'ich' | 'partner' | 'kasse'>('ich');
 	let selectedCategoryId = $state<string>('');
 
 	let isInitialized = $state(false);
@@ -40,10 +42,10 @@
 			
 			if (tx.split_mode === 'kasse') {
 				payer = 'kasse';
-			} else if (tx.paid_amount_user_a > 0) {
-				payer = 'a';
+			} else if (tx.paid_by === authStore.currentUser?.id) {
+				payer = 'ich';
 			} else {
-				payer = 'b';
+				payer = 'partner';
 			}
 
 			selectedCategoryId = tx.category || '';
@@ -74,31 +76,35 @@
 		loading = true;
 		const totalCents = toCents(amount);
 		
-		let paidA = 0;
-		let paidB = 0;
 		let splitMode = '50_50';
+		let paidBy = authStore.currentUser?.id;
 		
 		if (type === 'expense') {
-			if (payer === 'a') {
-				paidA = totalCents;
-			} else if (payer === 'b') {
-				paidB = totalCents;
-			} else {
+			if (payer === 'partner') {
+				if (!partnerStore.partnerUser) {
+					toast.error('Kein Partner gefunden!');
+					loading = false;
+					return;
+				}
+				paidBy = partnerStore.partnerUser.id;
+			} else if (payer === 'kasse') {
 				splitMode = 'kasse';
 			}
 		} else {
 			splitMode = 'deposit';
-			if (payer === 'a') {
-				paidA = totalCents;
-			} else {
-				paidB = totalCents;
+			if (payer === 'partner') {
+				if (!partnerStore.partnerUser) {
+					toast.error('Kein Partner gefunden!');
+					loading = false;
+					return;
+				}
+				paidBy = partnerStore.partnerUser.id;
 			}
 		}
 
 		await transactionStore.updateTransaction(tx.id, {
 			total_amount: totalCents,
-			paid_amount_user_a: paidA,
-			paid_amount_user_b: paidB,
+			paid_by: paidBy as string,
 			split_mode: splitMode,
 			note: note || (type === 'expense' ? 'Ausgabe' : 'Einzahlung'),
 			category: type === 'expense' ? selectedCategoryId : ''
@@ -211,20 +217,22 @@
 				<div class="flex gap-2">
 					<Button 
 						type="button" 
-						variant={payer === 'a' ? 'primary' : 'secondary'} 
+						variant={payer === 'ich' ? 'primary' : 'secondary'} 
 						class="flex-1"
-						onclick={() => payer = 'a'}
+						onclick={() => payer = 'ich'}
 					>
-						Ich (User A)
+						Ich
 					</Button>
+					{#if partnerStore.partnerStatus === 'active'}
 					<Button 
 						type="button" 
-						variant={payer === 'b' ? 'primary' : 'secondary'} 
+						variant={payer === 'partner' ? 'primary' : 'secondary'} 
 						class="flex-1"
-						onclick={() => payer = 'b'}
+						onclick={() => payer = 'partner'}
 					>
-						Partner (User B)
+						Partner
 					</Button>
+					{/if}
 					{#if type === 'expense'}
 						<Button 
 							type="button" 

@@ -2,6 +2,7 @@
 	import Card from '$lib/ui/Card.svelte';
 	import { transactionStore } from '../store.svelte';
 	import { formatCurrency } from '$lib/core/math';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { ReceiptText, ShoppingBag, Home, Sparkles, Car, CircleEllipsis } from '@lucide/svelte';
 
 	let transactions = $derived(transactionStore.transactions);
@@ -63,9 +64,9 @@
 							{#if tx.split_mode === 'kasse'}
 								aus Kasse bezahlt
 							{:else if tx.split_mode === 'deposit'}
-								von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 							{:else}
-								bezahlt von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								bezahlt von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 							{/if}
 						</span>
 					</div>

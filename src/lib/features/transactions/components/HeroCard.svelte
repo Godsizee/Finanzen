@@ -4,7 +4,7 @@
 	import { formatCurrency } from '$lib/core/math';
 
 	// Assuming current user is user A
-	let balance = $derived(transactionStore.balanceUserA);
+	let balance = $derived(transactionStore.myBalance);
 	let kasseBalance = $derived(transactionStore.kasseBalance);
 	let isPositive = $derived(balance >= 0);
 </script>
@@ -20,7 +20,7 @@
 	<div class="h-px bg-slate-800 my-1"></div>
 	
 	<div class="flex justify-between items-center">
-		<span class="text-sm text-slate-400 font-medium">Dein Saldo (User A):</span>
+		<span class="text-sm text-slate-400 font-medium">Dein Saldo:</span>
 		<div class="text-right">
 			<span class="font-semibold text-base {balance === 0 ? 'text-slate-300' : isPositive ? 'text-emerald-400' : 'text-red-400'}">
 				{formatCurrency(Math.abs(balance))}

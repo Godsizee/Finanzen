@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { settlementApi } from '$lib/features/settlements/api';
 	import { formatCurrency } from '$lib/core/math';
 	import { toast } from '$lib/core/toastStore.svelte';
@@ -9,30 +11,32 @@
 	import { ArrowLeft, CheckCircle2, History } from '@lucide/svelte';
 
 	let unsettled = $derived(transactionStore.unsettledTransactions);
-	let balanceA = $derived(transactionStore.balanceUserA);
+	let myBalance = $derived(transactionStore.myBalance);
 	let settledTxs = $derived(transactionStore.transactions.filter(tx => !!tx.settlement_id));
 	
 	let loading = $state(false);
 
 	async function handleSettle() {
 		if (unsettled.length === 0) return;
-		if (balanceA === 0) {
+		if (myBalance === 0) {
 			toast.info('Ihr seid quitt, keine Abrechnung nötig.');
+			return;
+		}
+		if (!authStore.currentUser || !partnerStore.partnerUser) {
+			toast.error('Kein Partner für die Abrechnung gefunden.');
 			return;
 		}
 
 		loading = true;
 		try {
-			const amount = Math.abs(balanceA);
-			const fromUser = balanceA > 0 ? 'b' : 'a'; // if balanceA is positive, B owes A. So from B to A.
-			const toUser = balanceA > 0 ? 'a' : 'b';
+			const amount = Math.abs(myBalance);
 
 			// Create settlement record
 			const settlement = await settlementApi.create({
 				date: new Date().toISOString(),
 				amount,
-				from_user: fromUser,
-				to_user: toUser
+				created_by: authStore.currentUser.id,
+				settled_with: partnerStore.partnerUser.id
 			});
 
 			// Update all unsettled transactions
@@ -64,7 +68,7 @@
 			
 			<div class="flex items-center justify-between mb-4">
 				<span class="text-emerald-900 font-medium text-sm">Ausgleichsbetrag:</span>
-				<span class="text-emerald-900 font-bold text-lg">{formatCurrency(Math.abs(balanceA))}</span>
+				<span class="text-emerald-900 font-bold text-lg">{formatCurrency(Math.abs(myBalance))}</span>
 			</div>
 			
 			<Button onclick={handleSettle} class="w-full" variant="primary">
@@ -97,9 +101,9 @@
 								{#if tx.split_mode === 'kasse'}
 									aus Kasse bezahlt
 								{:else if tx.split_mode === 'deposit'}
-									von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+									von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 								{:else}
-									bezahlt von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+									bezahlt von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 								{/if}
 							</span>
 						</div>
@@ -135,9 +139,9 @@
 								{#if tx.split_mode === 'kasse'}
 									aus Kasse bezahlt
 								{:else if tx.split_mode === 'deposit'}
-									von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+									von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 								{:else}
-									bezahlt von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+									bezahlt von {tx.paid_by === authStore.currentUser?.id ? 'Dir' : 'Partner'}
 								{/if}
 							</span>
 						</div>

@@ -4,8 +4,8 @@ import type { RecordModel } from 'pocketbase';
 export interface SettlementCreate {
 	date: string;
 	amount: number;
-	from_user: 'a' | 'b';
-	to_user: 'a' | 'b';
+	created_by: string;
+	settled_with: string;
 }
 
 export const settlementApi = {

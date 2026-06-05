@@ -4,8 +4,7 @@ import type { RecordModel } from 'pocketbase';
 export interface TransactionCreate {
 	total_amount: number;
 	date: string;
-	paid_amount_user_a: number;
-	paid_amount_user_b: number;
+	paid_by: string; // User ID
 	split_mode: string;
 	note?: string;
 	category?: string;
