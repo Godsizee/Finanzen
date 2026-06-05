@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
+	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import HeroCard from '$lib/features/transactions/components/HeroCard.svelte';
+	import MonthlyStats from '$lib/features/transactions/components/MonthlyStats.svelte';
 	import TransactionList from '$lib/features/transactions/components/TransactionList.svelte';
 	import { Plus } from '@lucide/svelte';
 
 	onMount(() => {
 		transactionStore.load();
+		categoryStore.load();
 	});
 </script>
 
@@ -19,6 +22,8 @@
 	</header>
 	
 	<HeroCard />
+
+	<MonthlyStats />
 	
 	<TransactionList />
 
@@ -31,3 +36,4 @@
 		<Plus size={24} />
 	</a>
 </div>
+

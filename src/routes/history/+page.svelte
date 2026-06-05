@@ -3,6 +3,7 @@
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
 	import { settlementApi } from '$lib/features/settlements/api';
 	import { formatCurrency } from '$lib/core/math';
+	import { toast } from '$lib/core/toastStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
 	import { ArrowLeft, CheckCircle2, History } from '@lucide/svelte';
@@ -16,8 +17,8 @@
 	async function handleSettle() {
 		if (unsettled.length === 0) return;
 		if (balanceA === 0) {
-			alert('Ihr seid quitt, keine Abrechnung nötig.');
-			// We can still mark them as settled with amount 0
+			toast.info('Ihr seid quitt, keine Abrechnung nötig.');
+			return;
 		}
 
 		loading = true;
@@ -36,13 +37,14 @@
 
 			// Update all unsettled transactions
 			await transactionStore.settle(settlement.id);
-			alert('Abrechnung erfolgreich abgeschlossen!');
+			toast.success('Abrechnung erfolgreich abgeschlossen!');
 		} catch (e: any) {
-			alert('Fehler bei der Abrechnung: ' + e.message);
+			toast.error('Fehler bei der Abrechnung: ' + e.message);
 		} finally {
 			loading = false;
 		}
 	}
+
 </script>
 
 <div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
@@ -81,11 +83,29 @@
 			<div class="flex flex-col gap-3">
 				{#each unsettled as tx (tx.id)}
 					<Card class="flex justify-between items-center p-4">
-						<div class="flex flex-col">
-							<span class="font-medium text-slate-900">{tx.note}</span>
-							<span class="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString()}</span>
+						<div class="flex flex-col min-w-0">
+							<div class="flex items-center gap-2">
+								<span class="font-medium text-slate-900 truncate">{tx.note}</span>
+								{#if tx.split_mode === 'kasse'}
+									<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">Kasse</span>
+								{:else if tx.split_mode === 'deposit'}
+									<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800">Einzahlung</span>
+								{/if}
+							</div>
+							<span class="text-xs text-slate-500 mt-0.5">
+								{new Date(tx.date).toLocaleDateString('de-DE')} • 
+								{#if tx.split_mode === 'kasse'}
+									aus Kasse bezahlt
+								{:else if tx.split_mode === 'deposit'}
+									von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								{:else}
+									bezahlt von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								{/if}
+							</span>
 						</div>
-						<span class="font-semibold text-slate-900">{formatCurrency(tx.total_amount)}</span>
+						<span class="font-semibold shrink-0 {tx.split_mode === 'deposit' ? 'text-emerald-600' : 'text-slate-900'}">
+							{tx.split_mode === 'deposit' ? '+' : ''}{formatCurrency(tx.total_amount)}
+						</span>
 					</Card>
 				{/each}
 			</div>
@@ -101,11 +121,29 @@
 			<div class="flex flex-col gap-3">
 				{#each settledTxs as tx (tx.id)}
 					<Card class="flex justify-between items-center p-4 bg-slate-50">
-						<div class="flex flex-col">
-							<span class="font-medium text-slate-900">{tx.note}</span>
-							<span class="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString()}</span>
+						<div class="flex flex-col min-w-0">
+							<div class="flex items-center gap-2">
+								<span class="font-medium text-slate-900 truncate">{tx.note}</span>
+								{#if tx.split_mode === 'kasse'}
+									<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">Kasse</span>
+								{:else if tx.split_mode === 'deposit'}
+									<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800">Einzahlung</span>
+								{/if}
+							</div>
+							<span class="text-xs text-slate-500 mt-0.5">
+								{new Date(tx.date).toLocaleDateString('de-DE')} • 
+								{#if tx.split_mode === 'kasse'}
+									aus Kasse bezahlt
+								{:else if tx.split_mode === 'deposit'}
+									von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								{:else}
+									bezahlt von {tx.paid_amount_user_a > 0 ? 'Dir' : 'Partner'}
+								{/if}
+							</span>
 						</div>
-						<span class="font-semibold text-slate-900">{formatCurrency(tx.total_amount)}</span>
+						<span class="font-semibold shrink-0 {tx.split_mode === 'deposit' ? 'text-emerald-600' : 'text-slate-900'}">
+							{tx.split_mode === 'deposit' ? '+' : ''}{formatCurrency(tx.total_amount)}
+						</span>
 					</Card>
 				{/each}
 			</div>

@@ -14,16 +14,25 @@ export interface TransactionCreate {
 export const transactionApi = {
 	async getAll(): Promise<RecordModel[]> {
 		return await pb.collection('transactions').getFullList({
-			sort: '-date'
+			sort: '-date',
+			expand: 'category'
 		});
 	},
 
 	async create(data: TransactionCreate): Promise<RecordModel> {
-		return await pb.collection('transactions').create(data);
+		return await pb.collection('transactions').create(data, {
+			expand: 'category'
+		});
 	},
 
-	async update(id: string, data: Partial<TransactionCreate & { settlement_id: string }>): Promise<RecordModel> {
-		return await pb.collection('transactions').update(id, data);
+	async update(id: string, data: Partial<TransactionCreate & { settlement_id: string | null }>): Promise<RecordModel> {
+		return await pb.collection('transactions').update(id, data, {
+			expand: 'category'
+		});
+	},
+
+	async delete(id: string): Promise<boolean> {
+		return await pb.collection('transactions').delete(id);
 	},
 	
 	subscribe(callback: (e: any) => void) {

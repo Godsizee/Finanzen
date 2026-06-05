@@ -31,14 +31,18 @@ export function formatCurrency(cents: number): string {
  * @param splitMode "50_50" or "custom" (custom not fully implemented here yet)
  */
 export function calculateBalance(totalAmount: number, userPaidAmount: number, splitMode: string = '50_50'): number {
+	if (splitMode === 'kasse') {
+		return 0;
+	}
+	
 	let userShare = 0;
-	if (splitMode === '50_50') {
+	if (splitMode === '50_50' || splitMode === 'deposit') {
 		userShare = Math.round(totalAmount / 2);
 	} else {
-		// Custom split fallback, assuming 50/50 for now
 		userShare = Math.round(totalAmount / 2);
 	}
 	
 	// Balance = Ist (Paid) - Soll (Share)
 	return userPaidAmount - userShare;
 }
+

@@ -1,6 +1,7 @@
 import { transactionApi, type TransactionCreate } from './api';
 import type { RecordModel } from 'pocketbase';
 import { calculateBalance } from '$lib/core/math';
+import { toast } from '$lib/core/toastStore.svelte';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
@@ -25,9 +26,15 @@ class TransactionStore {
 
 	unsettledTransactions = $derived(this.transactions.filter(tx => !tx.settlement_id));
 	
+	// Kasse derived states (computed from all transactions to maintain correct physical cash balance)
+	kasseDeposits = $derived(this.transactions.filter(tx => tx.split_mode === 'deposit').reduce((acc, tx) => acc + tx.total_amount, 0));
+	kasseExpenses = $derived(this.transactions.filter(tx => tx.split_mode === 'kasse').reduce((acc, tx) => acc + tx.total_amount, 0));
+	kasseBalance = $derived(this.kasseDeposits - this.kasseExpenses);
+
 	// Derived states for balances based ONLY on unsettled transactions
 	balanceUserA = $derived(this.calculateTotalBalance('a'));
 	balanceUserB = $derived(this.calculateTotalBalance('b'));
+
 
 	private calculateTotalBalance(user: 'a' | 'b'): number {
 		return this.unsettledTransactions.reduce((acc, tx) => {
@@ -59,12 +66,12 @@ class TransactionStore {
 			const record = await transactionApi.create(data);
 			// Replace optimistic record with real one
 			this.transactions = this.transactions.map((tx) => (tx.id === tempId ? record : tx));
+			toast.success('Ausgabe erfolgreich gespeichert!');
 		} catch (err: any) {
 			// Rollback
 			this.transactions = this.transactions.filter((tx) => tx.id !== tempId);
 			this.error = err.message || 'Error adding transaction';
-			// Here you could also trigger a toast notification
-			alert('Fehler beim Speichern der Transaktion: ' + this.error);
+			toast.error('Fehler beim Speichern: ' + this.error);
 		}
 	}
 	async settle(settlementId: string) {
@@ -85,7 +92,41 @@ class TransactionStore {
 			// Rollback
 			this.transactions = originalTxs;
 			this.error = err.message || 'Error settling transactions';
-			alert('Fehler beim Abrechnen: ' + this.error);
+			toast.error('Fehler beim Abrechnen: ' + this.error);
+		}
+	}
+
+	async updateTransaction(id: string, data: Partial<TransactionCreate>) {
+		const originalTxs = [...this.transactions];
+		// Optimistic update
+		this.transactions = this.transactions.map(tx => tx.id === id ? { ...tx, ...data } as unknown as RecordModel : tx);
+
+		try {
+			const record = await transactionApi.update(id, data);
+			// Replace with actual updated record
+			this.transactions = this.transactions.map(tx => tx.id === id ? record : tx);
+			toast.success('Transaktion aktualisiert!');
+		} catch (err: any) {
+			// Rollback
+			this.transactions = originalTxs;
+			this.error = err.message || 'Error updating transaction';
+			toast.error('Fehler beim Aktualisieren: ' + this.error);
+		}
+	}
+
+	async deleteTransaction(id: string) {
+		const originalTxs = [...this.transactions];
+		// Optimistic update
+		this.transactions = this.transactions.filter(tx => tx.id !== id);
+
+		try {
+			await transactionApi.delete(id);
+			toast.success('Transaktion gelöscht!');
+		} catch (err: any) {
+			// Rollback
+			this.transactions = originalTxs;
+			this.error = err.message || 'Error deleting transaction';
+			toast.error('Fehler beim Löschen: ' + this.error);
 		}
 	}
 }
