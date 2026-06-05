@@ -3,6 +3,7 @@ import type { RecordModel } from 'pocketbase';
 import { calculateBalance } from '$lib/core/math';
 import { toast } from '$lib/core/toastStore.svelte';
 import { authStore } from '$lib/features/auth/authStore.svelte';
+import { recurringStore } from '$lib/features/recurring/store.svelte';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
@@ -47,6 +48,13 @@ class TransactionStore {
 		this.loading = true;
 		this.error = null;
 		try {
+			// Trigger generation of due recurring expenses
+			try {
+				await recurringStore.generateDueTransactions();
+			} catch (reErr) {
+				console.error('Error generating recurring transactions:', reErr);
+			}
+			
 			this.transactions = await transactionApi.getAll();
 			this.initRealtime();
 		} catch (err: any) {

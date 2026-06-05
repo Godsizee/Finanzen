@@ -212,3 +212,10 @@ Milestone 3: PWA & Realtime (Service Worker, SSE Subscriptions).
 Milestone 4: Abrechnung (Settlement-Logik).
 
 Milestone 5: CI/CD & Deployment (Aufsetzen von Coolify, GitHub Webhooks, strikte .gitignore etablieren).
+
+Milestone 6: Wiederkehrende Ausgaben / Abo-Management
+- [NEW] Collection `recurring_expenses` in PocketBase (erledigt)
+- [NEW] API-Schnittstelle in `src/lib/features/recurring/api.ts` für CRUD-Operationen der wiederkehrenden Ausgaben
+- [NEW] Svelte 5 Store `src/lib/features/recurring/store.svelte.ts` zur Verwaltung und automatischen Generierung von Transaktionen beim App-Start
+- [NEW] Ansicht `/recurring` zur Verwaltung (Hinzufügen, Bearbeiten, Löschen) von monatlichen, vierteljährlichen und jährlichen Ausgaben (z. B. Miete, Spotify, Versicherungen)
+- [MODIFY] Integration der automatischen Generierung im globalen Layout-Ladevorgang oder im Dashboard-Store, so dass fehlende Buchungen seit `last_generated` automatisch erzeugt und in PocketBase gespeichert werden.

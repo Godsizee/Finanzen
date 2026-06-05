@@ -3,7 +3,7 @@
 	import { transactionStore } from '../store.svelte';
 	import { formatCurrency } from '$lib/core/math';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
-	import { ReceiptText, ShoppingBag, Home, Sparkles, Car, CircleEllipsis } from '@lucide/svelte';
+	import { ReceiptText, ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
 
 	let transactions = $derived(transactionStore.transactions);
 
@@ -12,7 +12,14 @@
 		Home,
 		Sparkles,
 		Car,
-		CircleEllipsis
+		CircleEllipsis,
+		Zap,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt
 	};
 
 	const colorMap: Record<string, string> = {
@@ -20,7 +27,15 @@
 		blue: 'bg-blue-50 text-blue-600',
 		amber: 'bg-amber-50 text-amber-600',
 		indigo: 'bg-indigo-50 text-indigo-600',
-		slate: 'bg-slate-100 text-slate-600'
+		slate: 'bg-slate-100 text-slate-600',
+		yellow: 'bg-yellow-50 text-yellow-600',
+		pink: 'bg-pink-50 text-pink-600',
+		violet: 'bg-violet-50 text-violet-600',
+		cyan: 'bg-cyan-50 text-cyan-600',
+		orange: 'bg-orange-50 text-orange-600',
+		red: 'bg-red-50 text-red-600',
+		rose: 'bg-rose-50 text-rose-600',
+		teal: 'bg-teal-50 text-teal-600'
 	};
 </script>
 

@@ -18,9 +18,16 @@ class CategoryStore {
 				console.log("Seeding default categories...");
 				const defaults = [
 					{ name: 'Lebensmittel', icon: 'ShoppingBag', color: 'emerald' },
-					{ name: 'Haushalt', icon: 'Home', color: 'blue' },
-					{ name: 'Freizeit', icon: 'Sparkles', color: 'amber' },
-					{ name: 'Auto', icon: 'Car', color: 'indigo' },
+					{ name: 'Wohnen & Miete', icon: 'Home', color: 'blue' },
+					{ name: 'Strom & Gas', icon: 'Zap', color: 'yellow' },
+					{ name: 'Drogerie & Haushalt', icon: 'Sparkles', color: 'pink' },
+					{ name: 'Mobilität & Auto', icon: 'Car', color: 'indigo' },
+					{ name: 'Freizeit & Hobbys', icon: 'Gamepad2', color: 'violet' },
+					{ name: 'Abos & Verträge', icon: 'Tv', color: 'cyan' },
+					{ name: 'Restaurants & Ausgehen', icon: 'Utensils', color: 'orange' },
+					{ name: 'Gesundheit', icon: 'Heart', color: 'red' },
+					{ name: 'Versicherungen', icon: 'Shield', color: 'rose' },
+					{ name: 'Kleidung & Shopping', icon: 'Shirt', color: 'teal' },
 					{ name: 'Sonstiges', icon: 'CircleEllipsis', color: 'slate' }
 				];
 				

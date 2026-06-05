@@ -10,14 +10,21 @@
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
-	import { ShoppingBag, Home, Sparkles, Car, CircleEllipsis } from '@lucide/svelte';
+	import { ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
 
 	const iconMap: Record<string, any> = {
 		ShoppingBag,
 		Home,
 		Sparkles,
 		Car,
-		CircleEllipsis
+		CircleEllipsis,
+		Zap,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt
 	};
 
 	let type = $state<'expense' | 'deposit'>('expense');

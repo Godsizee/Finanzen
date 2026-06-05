@@ -39,7 +39,15 @@
 		blue: 'bg-blue-500',
 		amber: 'bg-amber-500',
 		indigo: 'bg-indigo-500',
-		slate: 'bg-slate-400'
+		slate: 'bg-slate-400',
+		yellow: 'bg-yellow-500',
+		pink: 'bg-pink-500',
+		violet: 'bg-violet-500',
+		cyan: 'bg-cyan-500',
+		orange: 'bg-orange-500',
+		red: 'bg-red-500',
+		rose: 'bg-rose-500',
+		teal: 'bg-teal-500'
 	};
 
 	const bgMap: Record<string, string> = {
@@ -47,7 +55,15 @@
 		blue: 'bg-blue-100',
 		amber: 'bg-amber-100',
 		indigo: 'bg-indigo-100',
-		slate: 'bg-slate-100'
+		slate: 'bg-slate-100',
+		yellow: 'bg-yellow-100',
+		pink: 'bg-pink-100',
+		violet: 'bg-violet-100',
+		cyan: 'bg-cyan-100',
+		orange: 'bg-orange-100',
+		red: 'bg-red-100',
+		rose: 'bg-rose-100',
+		teal: 'bg-teal-100'
 	};
 
 	// Calculate statistics by category

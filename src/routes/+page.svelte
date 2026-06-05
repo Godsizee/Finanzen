@@ -17,6 +17,9 @@
 	<header class="mb-6 px-1 flex justify-between items-center">
 		<h1 class="text-2xl font-bold tracking-tight text-slate-900">Übersicht</h1>
 		<div class="flex items-center gap-4">
+			<a href="/recurring" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+				Abos
+			</a>
 			<a href="/history" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
 				Historie
 			</a>

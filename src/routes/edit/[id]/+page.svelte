@@ -9,14 +9,21 @@
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
-	import { ArrowLeft, Trash2, ShoppingBag, Home, Sparkles, Car, CircleEllipsis } from '@lucide/svelte';
+	import { ArrowLeft, Trash2, ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
 
 	const iconMap: Record<string, any> = {
 		ShoppingBag,
 		Home,
 		Sparkles,
 		Car,
-		CircleEllipsis
+		CircleEllipsis,
+		Zap,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt
 	};
 
 	let txId = $derived($page.params.id);
