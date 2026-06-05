@@ -175,6 +175,8 @@ class RecurringStore {
 			}
 		} catch (err: any) {
 			console.error('Fehler bei der automatischen Generierung:', err);
+			const details = err.response?.data ? JSON.stringify(err.response.data) : (err.message || err);
+			toast.error('Generierungsfehler: ' + details);
 		} finally {
 			this.generating = false;
 		}
