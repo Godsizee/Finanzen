@@ -2,6 +2,8 @@
 	import Card from '$lib/ui/Card.svelte';
 	import { transactionStore } from '../store.svelte';
 	import { formatCurrency } from '$lib/core/math';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 
 	// Assuming current user is user A
 	let balance = $derived(transactionStore.myBalance);
@@ -11,9 +13,22 @@
 
 <Card class="bg-slate-900 text-white border-0 p-6 flex flex-col gap-4">
 	<div class="flex flex-col gap-1">
-		<span class="text-xs text-slate-400 font-semibold tracking-wider uppercase">Gemeinsame Kasse</span>
-		<div class="text-4xl font-bold tracking-tight text-emerald-400">
-			{formatCurrency(kasseBalance)}
+		<div class="flex justify-between items-start">
+			<div class="flex flex-col gap-1">
+				<span class="text-xs text-slate-400 font-semibold tracking-wider uppercase">Gemeinsame Kasse</span>
+				<div class="text-4xl font-bold tracking-tight text-emerald-400">
+					{formatCurrency(kasseBalance)}
+				</div>
+			</div>
+			
+			<div class="text-right text-[11px] text-slate-400 mt-1 flex flex-col gap-0.5 select-none">
+				{#if authStore.currentUser?.income}
+					<div>Du: <span class="text-slate-100 font-semibold">{formatCurrency(authStore.currentUser.income)}</span></div>
+				{/if}
+				{#if partnerStore.partnerStatus === 'active' && partnerStore.partnerUser?.income}
+					<div>{partnerStore.partnerUser.name || 'Partner'}: <span class="text-slate-100 font-semibold">{formatCurrency(partnerStore.partnerUser.income)}</span></div>
+				{/if}
+			</div>
 		</div>
 	</div>
 	
