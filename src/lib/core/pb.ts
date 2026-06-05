@@ -1,8 +1,8 @@
 import PocketBase from 'pocketbase';
+import { PUBLIC_POCKETBASE_URL } from '$env/static/public';
 
-// Replace with your actual PocketBase URL when deploying.
-// For local development, this is usually http://127.0.0.1:8090
-export const pb = new PocketBase('http://127.0.0.1:8090');
+export const pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 
 // Disable auto-cancellation to prevent issues with rapid concurrent requests
 pb.autoCancellation(false);
+
