@@ -23,6 +23,17 @@ async function updateSchema() {
                 maxSelect: 1
             });
         }
+        const hasIncomeField = usersCollection.fields.some(field => field.name === 'income');
+        if (!hasIncomeField) {
+            usersCollection.fields.push({
+                name: "income",
+                type: "number",
+                required: false,
+                presentable: false,
+                unique: false,
+                min: 0
+            });
+        }
         usersCollection.listRule = '@request.auth.id != ""';
         usersCollection.viewRule = '@request.auth.id != ""';
         usersCollection.updateRule = 'id = @request.auth.id || partner = @request.auth.id';

@@ -3,6 +3,7 @@
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import HeroCard from '$lib/features/transactions/components/HeroCard.svelte';
+	import FairShareAlert from '$lib/features/transactions/components/FairShareAlert.svelte';
 	import MonthlyStats from '$lib/features/transactions/components/MonthlyStats.svelte';
 	import TransactionList from '$lib/features/transactions/components/TransactionList.svelte';
 	import { Plus, User } from '@lucide/svelte';
@@ -30,6 +31,8 @@
 	</header>
 	
 	<HeroCard />
+	
+	<FairShareAlert />
 
 	<MonthlyStats />
 	

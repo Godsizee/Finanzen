@@ -3,6 +3,7 @@ import type { RecordModel } from 'pocketbase';
 import { calculateBalance } from '$lib/core/math';
 import { toast } from '$lib/core/toastStore.svelte';
 import { authStore } from '$lib/features/auth/authStore.svelte';
+import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 import { recurringStore } from '$lib/features/recurring/store.svelte';
 
 class TransactionStore {
@@ -34,6 +35,39 @@ class TransactionStore {
 
 	// Derived states for balances based ONLY on unsettled transactions
 	myBalance = $derived(this.calculateTotalBalance());
+
+	fairSharingActive = $derived(
+		partnerStore.partnerStatus === 'active' &&
+		(authStore.currentUser?.income || 0) > 0 &&
+		(partnerStore.partnerUser?.income || 0) > 0
+	);
+
+	fairSharingRatio = $derived.by(() => {
+		if (!this.fairSharingActive) return 0;
+		const myIncome = authStore.currentUser?.income || 0;
+		const partnerIncome = partnerStore.partnerUser?.income || 0;
+		const total = myIncome + partnerIncome;
+		return total > 0 ? myIncome / total : 0;
+	});
+
+	fairBalance = $derived.by(() => {
+		if (!this.fairSharingActive) return 0;
+		const myId = authStore.currentUser?.id;
+		if (!myId) return 0;
+		
+		const ratioA = this.fairSharingRatio;
+		
+		return this.unsettledTransactions.reduce((acc, tx) => {
+			if (tx.split_mode === 'kasse') return acc;
+			
+			const totalAmount = tx.total_amount;
+			const didIPay = tx.paid_by === myId;
+			const myShare = Math.round(totalAmount * ratioA);
+			const myContribution = didIPay ? totalAmount : 0;
+			
+			return acc + (myContribution - myShare);
+		}, 0);
+	});
 
 	private calculateTotalBalance(): number {
 		const myId = authStore.currentUser?.id;

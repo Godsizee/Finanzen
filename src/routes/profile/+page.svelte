@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
-	import { User, UserPlus, Users, LogOut, Search, XCircle, CheckCircle } from '@lucide/svelte';
+	import { authApi } from '$lib/features/auth/api';
+	import { User, UserPlus, Users, LogOut, Search, XCircle, CheckCircle, Coins } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { toast } from '$lib/core/toastStore.svelte';
@@ -9,6 +10,15 @@
 	let searchEmail = $state('');
 	let searchResult = $state<any>(null);
 	let searching = $state(false);
+
+	let incomeInput = $state('');
+	let savingIncome = $state(false);
+
+	$effect(() => {
+		if (authStore.currentUser) {
+			incomeInput = authStore.currentUser.income ? (authStore.currentUser.income / 100).toString() : '';
+		}
+	});
 
 	onMount(() => {
 		partnerStore.loadPartnerStatus();
@@ -27,6 +37,26 @@
 			toast.info('Kein Nutzer mit dieser E-Mail gefunden.');
 		}
 		searching = false;
+	}
+
+	async function saveIncome(e: Event) {
+		e.preventDefault();
+		savingIncome = true;
+		try {
+			const parsed = parseFloat(incomeInput.replace(',', '.'));
+			if (isNaN(parsed) || parsed < 0) {
+				toast.error('Bitte ein gültiges Einkommen eingeben.');
+				return;
+			}
+			const cents = Math.round(parsed * 100);
+			const updated = await authApi.updateProfile({ income: cents });
+			authStore.currentUser = updated;
+			toast.success('Nettoeinkommen gespeichert!');
+		} catch (err: any) {
+			toast.error('Fehler beim Speichern: ' + err.message);
+		} finally {
+			savingIncome = false;
+		}
 	}
 </script>
 
@@ -47,6 +77,65 @@
 		>
 			<LogOut class="w-6 h-6" />
 		</button>
+	</div>
+
+	<!-- Nettoeinkommen Bereich -->
+	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+			<Coins class="w-5 h-5 text-slate-500" />
+			Nettoeinkommen
+		</h3>
+		<p class="text-sm text-slate-500">
+			Trage dein monatliches Nettoeinkommen ein, um das faire Kostenverhältnis mit deinem Partner zu berechnen.
+		</p>
+		<form onsubmit={saveIncome} class="flex gap-2">
+			<div class="relative flex-1">
+				<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">€</span>
+				<input
+					type="text"
+					inputmode="decimal"
+					bind:value={incomeInput}
+					placeholder="z. B. 2500"
+					required
+					class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium"
+				/>
+			</div>
+			<button
+				type="submit"
+				disabled={savingIncome}
+				class="px-6 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px]"
+			>
+				{savingIncome ? '...' : 'Speichern'}
+			</button>
+		</form>
+
+		{#if partnerStore.partnerStatus === 'active' && partnerStore.partnerUser}
+			<div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+				<div class="flex justify-between text-sm">
+					<span class="text-slate-500">Einkommen Partner ({partnerStore.partnerUser.name}):</span>
+					<span class="font-semibold text-slate-800">
+						{partnerStore.partnerUser.income ? (partnerStore.partnerUser.income / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }) : 'Nicht eingetragen'}
+					</span>
+				</div>
+				
+				{#if (authStore.currentUser?.income || 0) > 0 && (partnerStore.partnerUser.income || 0) > 0}
+					{@const total = (authStore.currentUser?.income || 0) + (partnerStore.partnerUser.income || 0)}
+					{@const myPercent = Math.round(((authStore.currentUser?.income || 0) / total) * 100)}
+					{@const partnerPercent = 100 - myPercent}
+					<div class="flex flex-col gap-1.5 pt-2">
+						<span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Faires Split-Verhältnis</span>
+						<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+							<div class="bg-slate-900 h-full transition-all" style="width: {myPercent}%" title="Du: {myPercent}%"></div>
+							<div class="bg-slate-400 h-full transition-all" style="width: {partnerPercent}%" title="Partner: {partnerPercent}%"></div>
+						</div>
+						<div class="flex justify-between text-xs text-slate-500 font-medium">
+							<span>Du: {myPercent}%</span>
+							<span>{partnerStore.partnerUser.name}: {partnerPercent}%</span>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Partner Bereich -->
