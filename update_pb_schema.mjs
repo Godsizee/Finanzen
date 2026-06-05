@@ -41,6 +41,18 @@ async function updateSchema() {
         await pb.collections.update('users', usersCollection);
         console.log('Users collection updated successfully.');
 
+        // 1.5 Update categories collection rules
+        try {
+            const categoriesCollection = await pb.collections.getOne('categories');
+            categoriesCollection.listRule = '@request.auth.id != ""';
+            categoriesCollection.viewRule = '@request.auth.id != ""';
+            categoriesCollection.createRule = '@request.auth.id != ""';
+            await pb.collections.update('categories', categoriesCollection);
+            console.log('Categories collection rules updated.');
+        } catch (catErr) {
+            console.error('Error updating categories rules:', catErr.message);
+        }
+
         // 2. Clear old transactions and settlements if any (to start fresh)
         try {
             console.log('Deleting transactions collection to recreate...');
