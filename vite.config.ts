@@ -16,6 +16,9 @@ export default defineConfig({
 				theme_color: '#f8fafc',
 				background_color: '#f8fafc',
 				display: 'standalone',
+				start_url: '/',
+				scope: '/',
+				orientation: 'portrait',
 				icons: [
 					{
 						src: 'pwa-192x192.png',
@@ -26,6 +29,23 @@ export default defineConfig({
 						src: 'pwa-512x512.png',
 						sizes: '512x512',
 						type: 'image/png'
+					}
+				]
+			},
+			workbox: {
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+				runtimeCaching: [
+					{
+						urlPattern: /^https:\/\/pocketbase-finanzen\.dasdann\.jetzt\/api\/.*/i,
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pb-api-cache',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 24 * 60 * 60 // 24 hours
+							},
+							networkTimeoutSeconds: 5
+						}
 					}
 				]
 			}

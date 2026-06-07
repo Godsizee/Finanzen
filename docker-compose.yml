@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-https://pocketbase-finanzen.dasdann.jetzt}
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - PUBLIC_POCKETBASE_URL=${PUBLIC_POCKETBASE_URL:-https://pocketbase-finanzen.dasdann.jetzt}
+    restart: unless-stopped
+    depends_on:
+      - pocketbase
+
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    ports:
+      - "8090:8090"
+    volumes:
+      - pb_data:/pb/pb_data
+    command:
+      - serve
+      - --http=0.0.0.0:8090
+      - --dir=/pb/pb_data
+    restart: unless-stopped
+
+volumes:
+  pb_data:

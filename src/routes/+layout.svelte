@@ -7,17 +7,43 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
+	import { onMount } from 'svelte';
+	import { pb } from '$lib/core/pb';
+
 	let { children } = $props();
+
+	onMount(async () => {
+		if (authStore.isLoggedIn) {
+			try {
+				await pb.collection('users').authRefresh();
+			} catch (err) {
+				authStore.logout();
+				goto('/login');
+			}
+		}
+	});
 
 	// Auth Guard & Partner Load
 	$effect(() => {
-		const isAuthRoute = $page.url.pathname === '/login' || $page.url.pathname === '/register';
-		if (!authStore.isLoggedIn && !isAuthRoute) {
-			goto('/login');
-		} else if (authStore.isLoggedIn) {
-			partnerStore.loadPartnerStatus();
-			if (isAuthRoute) {
-				goto('/');
+		const path = $page.url.pathname;
+		const isPublicRoute = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes(path);
+		
+		if (!authStore.isLoggedIn) {
+			if (!isPublicRoute) {
+				goto('/login');
+			}
+		} else {
+			const isUnverified = authStore.currentUser && !authStore.currentUser.verified;
+			if (isUnverified && path !== '/verify-email') {
+				goto('/verify-email');
+			} else if (!isUnverified) {
+				partnerStore.loadPartnerStatus();
+				const needsOnboarding = authStore.currentUser && !authStore.currentUser.onboarded;
+				if (needsOnboarding && path !== '/onboarding') {
+					goto('/onboarding');
+				} else if (!needsOnboarding && (path === '/login' || path === '/register' || path === '/verify-email' || path === '/onboarding')) {
+					goto('/');
+				}
 			}
 		}
 	});

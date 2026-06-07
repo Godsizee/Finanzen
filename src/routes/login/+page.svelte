@@ -66,9 +66,14 @@
 			</button>
 		</form>
 
-		<p class="text-center text-sm text-slate-500">
-			Noch keinen Account?
-			<a href="/register" class="text-slate-900 font-medium hover:underline">Hier registrieren</a>
-		</p>
+		<div class="flex flex-col gap-3 text-center text-sm text-slate-500">
+			<p>
+				Noch keinen Account?
+				<a href="/register" class="text-slate-900 font-medium hover:underline">Hier registrieren</a>
+			</p>
+			<p>
+				<a href="/forgot-password" class="text-slate-600 hover:text-slate-900 transition-colors hover:underline">Passwort vergessen?</a>
+			</p>
+		</div>
 	</div>
 </div>

@@ -10,6 +10,7 @@
 	import { toast } from '$lib/core/toastStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	
 	import { 
 		ArrowLeft, Trash2, ShoppingBag, Home, Zap, Sparkles, Car, Gamepad2, 
@@ -105,8 +106,15 @@
 			splitMode = 'kasse';
 		}
 
+		const id = ruleId;
+		if (!id) {
+			toast.error('Ungültige Abo-ID');
+			loading = false;
+			return;
+		}
+
 		try {
-			await recurringStore.update(ruleId, {
+			await recurringStore.update(id, {
 				name,
 				amount: totalCents,
 				category: selectedCategoryId,
@@ -125,17 +133,27 @@
 		}
 	}
 
-	async function handleDelete() {
-		if (confirm('Möchtest du dieses Abo wirklich löschen?')) {
-			loading = true;
-			try {
-				await recurringStore.delete(ruleId);
-				goto('/recurring');
-			} catch (e) {
-				// error is handled in store
-			} finally {
-				loading = false;
-			}
+	let showConfirmDelete = $state(false);
+
+	function triggerDelete() {
+		showConfirmDelete = true;
+	}
+
+	async function executeDelete() {
+		const id = ruleId;
+		if (!id) {
+			toast.error('Ungültige Abo-ID');
+			return;
+		}
+
+		loading = true;
+		try {
+			await recurringStore.delete(id);
+			goto('/recurring');
+		} catch (e) {
+			// error is handled in store
+		} finally {
+			loading = false;
 		}
 	}
 </script>
@@ -148,7 +166,7 @@
 			</button>
 			<h1 class="text-xl font-bold tracking-tight text-slate-900">Abo bearbeiten</h1>
 		</div>
-		<button onclick={handleDelete} class="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors" aria-label="Löschen">
+		<button onclick={triggerDelete} class="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors" aria-label="Löschen">
 			<Trash2 size={22} />
 		</button>
 	</header>
@@ -285,4 +303,14 @@
 			</div>
 		</form>
 	{/if}
+
+	<ConfirmDialog
+		bind:show={showConfirmDelete}
+		title="Abo löschen"
+		message="Möchtest du dieses Abonnement wirklich unwiderruflich löschen?"
+		confirmText="Abo löschen"
+		cancelText="Abbrechen"
+		variant="danger"
+		onconfirm={executeDelete}
+	/>
 </div>

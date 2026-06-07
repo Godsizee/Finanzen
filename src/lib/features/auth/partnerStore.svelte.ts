@@ -27,7 +27,7 @@ class PartnerStore {
 			} else {
 				// Hat jemand mich eingetragen?
 				const records = await pb.collection('users').getList(1, 1, {
-					filter: `partner = "${me.id}"`
+					filter: pb.filter('partner = {:meId}', { meId: me.id })
 				});
 				
 				if (records.items.length > 0) {
@@ -46,7 +46,7 @@ class PartnerStore {
 	async searchByEmail(email: string): Promise<RecordModel | null> {
 		if (!email) return null;
 		try {
-			const res = await pb.collection('users').getFirstListItem(`email = "${email}"`);
+			const res = await pb.collection('users').getFirstListItem(pb.filter('email = {:email}', { email }));
 			if (res.id === authStore.currentUser?.id) {
 				toast.error('Du kannst dich nicht selbst einladen!');
 				return null;

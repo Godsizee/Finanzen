@@ -5,6 +5,8 @@
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { ReceiptText, ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
 
+	import SkeletonCard from '$lib/ui/SkeletonCard.svelte';
+
 	let transactions = $derived(transactionStore.transactions);
 
 	const iconMap: Record<string, any> = {
@@ -42,9 +44,17 @@
 <div class="flex flex-col gap-3 mt-8">
 	<h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2 px-1">Letzte Ausgaben</h3>
 	
-	{#if transactions.length === 0}
-		<div class="text-center py-10 text-slate-400 text-sm">
-			Noch keine Ausgaben erfasst.
+	{#if transactionStore.loading}
+		<SkeletonCard lines={2} hasIcon={true} />
+		<SkeletonCard lines={2} hasIcon={true} />
+		<SkeletonCard lines={2} hasIcon={true} />
+	{:else if transactions.length === 0}
+		<div class="text-center py-12 px-4 bg-white border border-slate-100 rounded-2xl">
+			<div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+				<ReceiptText size={24} />
+			</div>
+			<p class="text-slate-800 font-semibold text-sm">Noch keine Ausgaben erfasst</p>
+			<p class="text-slate-500 text-xs mt-1">Füge deine erste Ausgabe hinzu, um die Verrechnung zu starten.</p>
 		</div>
 	{/if}
 

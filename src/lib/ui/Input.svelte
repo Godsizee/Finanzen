@@ -10,7 +10,7 @@
 	}: {
 		value: any;
 		label?: string;
-		type?: 'text' | 'number' | 'date';
+		type?: 'text' | 'number' | 'date' | 'password' | 'email';
 		inputmode?: 'text' | 'decimal' | 'numeric';
 		placeholder?: string;
 		required?: boolean;

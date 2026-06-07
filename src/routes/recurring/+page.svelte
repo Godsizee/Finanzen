@@ -8,6 +8,7 @@
 	import { formatCurrency } from '$lib/core/math';
 	import Card from '$lib/ui/Card.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	
 	import { 
 		ArrowLeft, Plus, Play, Pause, Edit2, Trash2, 
@@ -72,13 +73,22 @@
 		}
 	}
 
-	async function handleDelete(id: string) {
-		if (confirm('Möchtest du dieses Abo wirklich löschen?')) {
-			try {
-				await recurringStore.delete(id);
-			} catch (e) {
-				// Toast is handled in store
-			}
+	let showConfirmDelete = $state(false);
+	let ruleIdToDelete = $state<string | null>(null);
+
+	function confirmDelete(id: string) {
+		ruleIdToDelete = id;
+		showConfirmDelete = true;
+	}
+
+	async function executeDelete() {
+		if (!ruleIdToDelete) return;
+		try {
+			await recurringStore.delete(ruleIdToDelete);
+		} catch (e) {
+			// Toast is handled in store
+		} finally {
+			ruleIdToDelete = null;
 		}
 	}
 </script>
@@ -184,7 +194,7 @@
 									</button>
 
 									<button 
-										onclick={() => handleDelete(rule.id)}
+										onclick={() => confirmDelete(rule.id)}
 										class="p-1.5 rounded-md text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors active:scale-95"
 										title="Löschen"
 									>
@@ -209,4 +219,14 @@
 			<Plus size={24} />
 		</a>
 	{/if}
+
+	<ConfirmDialog
+		bind:show={showConfirmDelete}
+		title="Abo löschen"
+		message="Möchtest du dieses wiederkehrende Abonnement wirklich löschen? Zukünftige Ausgaben werden nicht mehr automatisch generiert."
+		confirmText="Abo löschen"
+		cancelText="Abbrechen"
+		variant="danger"
+		onconfirm={executeDelete}
+	/>
 </div>

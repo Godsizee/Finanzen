@@ -4,6 +4,8 @@
 	import { UserPlus } from '@lucide/svelte';
 	import { toast } from '$lib/core/toastStore.svelte';
 
+	import { isValidEmail, isValidPassword } from '$lib/core/validation';
+
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -11,8 +13,14 @@
 
 	async function handleRegister(e: Event) {
 		e.preventDefault();
-		if (password.length < 8) {
-			toast.error('Das Passwort muss mindestens 8 Zeichen lang sein.');
+		if (!isValidEmail(email)) {
+			toast.error('Bitte eine gültige E-Mail-Adresse eingeben.');
+			return;
+		}
+
+		const pwValidation = isValidPassword(password);
+		if (!pwValidation.valid) {
+			toast.error(pwValidation.message || 'Ungültiges Passwort.');
 			return;
 		}
 

@@ -2,10 +2,12 @@
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { authApi } from '$lib/features/auth/api';
-	import { User, UserPlus, Users, LogOut, Search, XCircle, CheckCircle, Coins } from '@lucide/svelte';
+	import { User, UserPlus, Users, LogOut, Search, XCircle, CheckCircle, Coins, KeyRound, Mail, AlertTriangle, ShieldCheck } from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { toast } from '$lib/core/toastStore.svelte';
+	import { pb } from '$lib/core/pb';
+	import { isValidEmail, isValidPassword } from '$lib/core/validation';
 
 	let searchEmail = $state('');
 	let searchResult = $state<any>(null);
@@ -13,6 +15,84 @@
 
 	let incomeInput = $state('');
 	let savingIncome = $state(false);
+
+	let oldPassword = $state('');
+	let newPassword = $state('');
+	let newPasswordConfirm = $state('');
+	let changingPassword = $state(false);
+
+	let newEmail = $state('');
+	let changingEmail = $state(false);
+
+	async function handlePasswordChange(e: Event) {
+		e.preventDefault();
+		if (!authStore.currentUser) return;
+		
+		const pwValidation = isValidPassword(newPassword);
+		if (!pwValidation.valid) {
+			toast.error(pwValidation.message || 'Passwort-Validierung fehlgeschlagen.');
+			return;
+		}
+
+		if (newPassword !== newPasswordConfirm) {
+			toast.error('Passwörter stimmen nicht überein.');
+			return;
+		}
+
+		changingPassword = true;
+		try {
+			await pb.collection('users').update(authStore.currentUser.id, {
+				oldPassword,
+				password: newPassword,
+				passwordConfirm: newPasswordConfirm
+			});
+			toast.success('Passwort erfolgreich geändert!');
+			oldPassword = '';
+			newPassword = '';
+			newPasswordConfirm = '';
+		} catch (err: any) {
+			toast.error('Fehler: ' + (err.message || err));
+		} finally {
+			changingPassword = false;
+		}
+	}
+
+	async function handleEmailChange(e: Event) {
+		e.preventDefault();
+		if (!isValidEmail(newEmail)) {
+			toast.error('Bitte eine gültige E-Mail-Adresse eingeben.');
+			return;
+		}
+
+		changingEmail = true;
+		try {
+			await pb.collection('users').requestEmailChange(newEmail);
+			toast.success('Eine Bestätigungs-E-Mail wurde an die neue Adresse gesendet!');
+			newEmail = '';
+		} catch (err: any) {
+			toast.error('Fehler: ' + (err.message || err));
+		} finally {
+			changingEmail = false;
+		}
+	}
+
+	async function handleAccountDelete() {
+		if (!authStore.currentUser) return;
+		const conf = confirm(
+			'Möchtest du deinen Account wirklich unwiderruflich löschen? Alle deine Daten werden gelöscht. Dies kann nicht rückgängig gemacht werden!'
+		);
+		if (!conf) return;
+
+		try {
+			await pb.collection('users').delete(authStore.currentUser.id);
+			toast.success('Account gelöscht.');
+			authStore.logout();
+			goto('/login');
+		} catch (err: any) {
+			toast.error('Fehler: ' + (err.message || err));
+		}
+	}
+
 
 	$effect(() => {
 		if (authStore.currentUser) {
@@ -250,5 +330,102 @@
 				{/if}
 			</div>
 		{/if}
+	</div>
+
+	<!-- Sicherheit & Account Bereich -->
+	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
+		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+			<ShieldCheck class="w-5 h-5 text-slate-500" />
+			Sicherheit & Account
+		</h3>
+
+		<!-- E-Mail-Adresse ändern -->
+		<div class="space-y-3">
+			<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+				<Mail class="w-4 h-4 text-slate-400" />
+				E-Mail-Adresse ändern
+			</h4>
+			<p class="text-xs text-slate-500">
+				Trage eine neue E-Mail-Adresse ein. Du erhältst dort einen Link zur Bestätigung.
+			</p>
+			<form onsubmit={handleEmailChange} class="flex gap-2">
+				<input
+					type="email"
+					bind:value={newEmail}
+					placeholder="neue@email.de"
+					required
+					class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium text-sm min-h-[48px]"
+				/>
+				<button
+					type="submit"
+					disabled={changingEmail}
+					class="px-5 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px] text-sm shrink-0"
+				>
+					{changingEmail ? '...' : 'Ändern'}
+				</button>
+			</form>
+		</div>
+
+		<div class="h-px bg-slate-100"></div>
+
+		<!-- Passwort ändern -->
+		<form onsubmit={handlePasswordChange} class="space-y-3">
+			<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+				<KeyRound class="w-4 h-4 text-slate-400" />
+				Passwort ändern
+			</h4>
+			
+			<div class="space-y-2">
+				<input
+					type="password"
+					bind:value={oldPassword}
+					placeholder="Aktuelles Passwort"
+					required
+					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+				/>
+				<input
+					type="password"
+					bind:value={newPassword}
+					placeholder="Neues Passwort (min. 8 Zeichen)"
+					required
+					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+				/>
+				<input
+					type="password"
+					bind:value={newPasswordConfirm}
+					placeholder="Neues Passwort bestätigen"
+					required
+					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+				/>
+			</div>
+
+			<button
+				type="submit"
+				disabled={changingPassword}
+				class="w-full py-2.5 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px] text-sm flex justify-center items-center gap-2"
+			>
+				{changingPassword ? 'Wird geändert...' : 'Passwort aktualisieren'}
+			</button>
+		</form>
+
+		<div class="h-px bg-slate-100"></div>
+
+		<!-- Gefahrenzone / Account löschen -->
+		<div class="space-y-3">
+			<h4 class="text-sm font-semibold text-red-600 flex items-center gap-2">
+				<AlertTriangle class="w-4 h-4" />
+				Gefahrenzone
+			</h4>
+			<p class="text-xs text-slate-500">
+				Hier kannst du deinen Account dauerhaft löschen. Diese Aktion löscht deine Profildaten unwiderruflich.
+			</p>
+			<button
+				type="button"
+				onclick={handleAccountDelete}
+				class="w-full py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-xl font-medium active:scale-95 transition-all text-sm min-h-[48px]"
+			>
+				Account unwiderruflich löschen
+			</button>
+		</div>
 	</div>
 </div>

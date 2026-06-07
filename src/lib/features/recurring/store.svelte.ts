@@ -2,6 +2,7 @@ import { recurringApi } from './api';
 import { transactionApi } from '$lib/features/transactions/api';
 import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
+import { handleAppError } from '$lib/core/errorHandler';
 
 class RecurringStore {
 	expenses = $state<RecordModel[]>([]);
@@ -15,8 +16,8 @@ class RecurringStore {
 		try {
 			this.expenses = await recurringApi.getAll();
 		} catch (err: any) {
-			this.error = err.message || 'Fehler beim Laden der wiederkehrenden Ausgaben';
-			toast.error(this.error);
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		} finally {
 			this.loading = false;
 		}
@@ -33,7 +34,7 @@ class RecurringStore {
 			
 			return record;
 		} catch (err: any) {
-			toast.error('Fehler beim Erstellen: ' + (err.message || err));
+			handleAppError(err);
 			throw err;
 		}
 	}
@@ -49,7 +50,7 @@ class RecurringStore {
 			
 			return record;
 		} catch (err: any) {
-			toast.error('Fehler beim Aktualisieren: ' + (err.message || err));
+			handleAppError(err);
 			throw err;
 		}
 	}
@@ -60,7 +61,7 @@ class RecurringStore {
 			this.expenses = this.expenses.filter((e) => e.id !== id);
 			toast.success('Wiederkehrende Ausgabe gelöscht');
 		} catch (err: any) {
-			toast.error('Fehler beim Löschen: ' + (err.message || err));
+			handleAppError(err);
 			throw err;
 		}
 	}
@@ -139,8 +140,6 @@ class RecurringStore {
 				);
 
 				if (dueDates.length === 0) continue;
-
-				console.log(`Generating ${dueDates.length} transactions for rule "${rule.name}"`);
 				
 				let latestDateStr = rule.last_generated;
 
@@ -170,9 +169,7 @@ class RecurringStore {
 				}
 			}
 
-			if (generatedCount > 0) {
-				console.log(`Successfully generated ${generatedCount} recurring transactions!`);
-			}
+
 		} catch (err: any) {
 			console.error('Fehler bei der automatischen Generierung:', err);
 			const details = err.response?.data ? JSON.stringify(err.response.data) : (err.message || err);

@@ -1,12 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="text-scale" content="scale" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#f8fafc" />
+		<meta name="description" content="FairShare - Progressive Web App zur fairen, einkommensbasierten Aufteilung gemeinsamer Haushaltskosten." />
+		
+		<!-- PWA iOS-Support -->
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="FairShare" />
+
+		<!-- OpenGraph Metadaten -->
+		<meta property="og:title" content="FairShare Haushaltsbuch" />
+		<meta property="og:description" content="Gemeinsame Haushaltskosten fair und transparent aufteilen." />
+		<meta property="og:type" content="website" />
+		
 		%sveltekit.head%
 	</head>
-	<body data-sveltekit-preload-data="hover">
+	<body data-sveltekit-preload-data="hover" class="overscroll-y-none">
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

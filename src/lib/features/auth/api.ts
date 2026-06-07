@@ -16,6 +16,12 @@ export const authApi = {
 		};
 		const record = await pb.collection('users').create(data);
 		
+		try {
+			await pb.collection('users').requestVerification(email);
+		} catch (err) {
+			console.error('Verifikations-E-Mail-Fehler:', err);
+		}
+
 		// Immediately log in after registration
 		await this.login(email, pass);
 		return record;

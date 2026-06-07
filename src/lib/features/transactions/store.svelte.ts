@@ -5,6 +5,7 @@ import { toast } from '$lib/core/toastStore.svelte';
 import { authStore } from '$lib/features/auth/authStore.svelte';
 import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 import { recurringStore } from '$lib/features/recurring/store.svelte';
+import { handleAppError } from '$lib/core/errorHandler';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
@@ -92,7 +93,8 @@ class TransactionStore {
 			this.transactions = await transactionApi.getAll();
 			this.initRealtime();
 		} catch (err: any) {
-			this.error = err.message || 'Error loading transactions';
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		} finally {
 			this.loading = false;
 		}
@@ -112,8 +114,8 @@ class TransactionStore {
 		} catch (err: any) {
 			// Rollback
 			this.transactions = this.transactions.filter((tx) => tx.id !== tempId);
-			this.error = err.message || 'Error adding transaction';
-			toast.error('Fehler beim Speichern: ' + this.error);
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		}
 	}
 	async settle(settlementId: string) {
@@ -133,8 +135,8 @@ class TransactionStore {
 		} catch (err: any) {
 			// Rollback
 			this.transactions = originalTxs;
-			this.error = err.message || 'Error settling transactions';
-			toast.error('Fehler beim Abrechnen: ' + this.error);
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		}
 	}
 
@@ -151,8 +153,8 @@ class TransactionStore {
 		} catch (err: any) {
 			// Rollback
 			this.transactions = originalTxs;
-			this.error = err.message || 'Error updating transaction';
-			toast.error('Fehler beim Aktualisieren: ' + this.error);
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		}
 	}
 
@@ -167,8 +169,8 @@ class TransactionStore {
 		} catch (err: any) {
 			// Rollback
 			this.transactions = originalTxs;
-			this.error = err.message || 'Error deleting transaction';
-			toast.error('Fehler beim Löschen: ' + this.error);
+			const appErr = handleAppError(err);
+			this.error = appErr.message;
 		}
 	}
 }
