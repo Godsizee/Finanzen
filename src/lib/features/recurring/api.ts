@@ -17,7 +17,7 @@ export interface RecurringExpenseCreate {
 export const recurringApi = {
 	async getAll(): Promise<RecordModel[]> {
 		return await pb.collection('recurring_expenses').getFullList({
-			sort: '-created',
+			sort: '-start_date',
 			expand: 'category'
 		});
 	},
