@@ -37,6 +37,7 @@ export function handleAppError(err: unknown): AppError {
 				message = 'Sitzung abgelaufen oder nicht autorisiert. Bitte logge dich neu ein.';
 				code = 'UNAUTHORIZED';
 				authStore.logout();
+				// eslint-disable-next-line svelte/no-navigation-without-resolve
 				goto(`${base}/login`);
 			} else if (pbErr.status === 400) {
 				if (pbErr.response?.data) {

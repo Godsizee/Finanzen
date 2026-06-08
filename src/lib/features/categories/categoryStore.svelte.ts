@@ -41,8 +41,8 @@ class CategoryStore {
 			}
 
 			this.categories = list;
-		} catch (err: any) {
-			this.error = err.message || 'Error loading categories';
+		} catch (err) {
+			this.error = err instanceof Error ? err.message : 'Error loading categories';
 			toast.error('Fehler beim Laden der Kategorien: ' + this.error);
 		} finally {
 			this.loading = false;

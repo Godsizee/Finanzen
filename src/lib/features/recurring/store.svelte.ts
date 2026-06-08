@@ -3,6 +3,14 @@ import { transactionApi } from '$lib/features/transactions/api';
 import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
+import { SvelteDate } from 'svelte/reactivity';
+
+interface PocketBaseError {
+	message?: string;
+	response?: {
+		data?: Record<string, unknown>;
+	};
+}
 
 class RecurringStore {
 	expenses = $state<RecordModel[]>([]);
@@ -15,7 +23,7 @@ class RecurringStore {
 		this.error = null;
 		try {
 			this.expenses = await recurringApi.getAll();
-		} catch (err: any) {
+		} catch (err) {
 			const appErr = handleAppError(err);
 			this.error = appErr.message;
 		} finally {
@@ -33,7 +41,7 @@ class RecurringStore {
 			await this.generateDueTransactions();
 
 			return record;
-		} catch (err: any) {
+		} catch (err) {
 			handleAppError(err);
 			throw err;
 		}
@@ -49,7 +57,7 @@ class RecurringStore {
 			await this.generateDueTransactions();
 
 			return record;
-		} catch (err: any) {
+		} catch (err) {
 			handleAppError(err);
 			throw err;
 		}
@@ -60,7 +68,7 @@ class RecurringStore {
 			await recurringApi.delete(id);
 			this.expenses = this.expenses.filter((e) => e.id !== id);
 			toast.success('Wiederkehrende Ausgabe gelöscht');
-		} catch (err: any) {
+		} catch (err) {
 			handleAppError(err);
 			throw err;
 		}
@@ -73,14 +81,14 @@ class RecurringStore {
 		frequency: string,
 		lastGeneratedStr: string | null
 	): Date[] {
-		const start = new Date(startDateStr);
+		const start = new SvelteDate(startDateStr);
 		start.setUTCHours(12, 0, 0, 0);
 
-		let current = new Date(start);
+		let current = new SvelteDate(start);
 		if (lastGeneratedStr) {
-			const lastGen = new Date(lastGeneratedStr);
+			const lastGen = new SvelteDate(lastGeneratedStr);
 			lastGen.setUTCHours(12, 0, 0, 0);
-			current = new Date(lastGen);
+			current = new SvelteDate(lastGen);
 
 			if (frequency === 'monthly') {
 				current.setUTCMonth(current.getUTCMonth() + 1);
@@ -93,7 +101,7 @@ class RecurringStore {
 
 		current.setUTCDate(dayOfMonth);
 
-		const today = new Date();
+		const today = new SvelteDate();
 		today.setHours(12, 0, 0, 0);
 
 		const dueDates: Date[] = [];
@@ -109,7 +117,7 @@ class RecurringStore {
 		}
 
 		while (current <= today) {
-			dueDates.push(new Date(current));
+			dueDates.push(new SvelteDate(current));
 
 			if (frequency === 'monthly') {
 				current.setUTCMonth(current.getUTCMonth() + 1);
@@ -173,9 +181,12 @@ class RecurringStore {
 					});
 				}
 			}
-		} catch (err: any) {
+		} catch (err) {
 			console.error('Fehler bei der automatischen Generierung:', err);
-			const details = err.response?.data ? JSON.stringify(err.response.data) : err.message || err;
+			const pbErr = err as PocketBaseError;
+			const details = pbErr.response?.data
+				? JSON.stringify(pbErr.response.data)
+				: pbErr.message || String(err);
 			toast.error('Generierungsfehler: ' + details);
 		} finally {
 			this.generating = false;

@@ -8,7 +8,7 @@ export interface TransactionCreate {
 	split_mode: string;
 	note?: string;
 	category?: string;
-	metadata?: any;
+	metadata?: unknown;
 }
 
 export const transactionApi = {
@@ -38,7 +38,7 @@ export const transactionApi = {
 		return await pb.collection('transactions').delete(id);
 	},
 
-	subscribe(callback: (e: any) => void) {
+	subscribe(callback: (e: { action: string; record: RecordModel }) => void) {
 		pb.collection('transactions').subscribe('*', callback);
 		return () => {
 			pb.collection('transactions').unsubscribe('*');

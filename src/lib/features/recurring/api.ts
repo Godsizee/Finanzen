@@ -38,7 +38,7 @@ export const recurringApi = {
 		return await pb.collection('recurring_expenses').delete(id);
 	},
 
-	subscribe(callback: (e: any) => void) {
+	subscribe(callback: (e: { action: string; record: RecordModel }) => void) {
 		pb.collection('recurring_expenses').subscribe('*', callback);
 		return () => {
 			pb.collection('recurring_expenses').unsubscribe('*');
