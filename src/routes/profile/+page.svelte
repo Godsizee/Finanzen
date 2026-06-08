@@ -18,6 +18,10 @@
 	let budgetInput = $state('');
 	let savingBudget = $state(false);
 
+	let costSharingMode = $state<'kasse'|'split'>('kasse');
+	let costSharingPercent = $state(50);
+	let savingCostSharing = $state(false);
+
 	let oldPassword = $state('');
 	let newPassword = $state('');
 	let newPasswordConfirm = $state('');
@@ -99,6 +103,8 @@
 	$effect(() => {
 		if (authStore.currentUser) {
 			incomeInput = authStore.currentUser.income ? (authStore.currentUser.income / 100).toString() : '';
+			costSharingMode = authStore.currentUser.cost_sharing_mode || 'kasse';
+			costSharingPercent = authStore.currentUser.cost_sharing_percent || 50;
 		}
 		const storedBudget = localStorage.getItem('fairshare_monthly_budget');
 		if (storedBudget) {
@@ -157,6 +163,33 @@
 			toast.error('Fehler beim Speichern: ' + err.message);
 		} finally {
 			savingIncome = false;
+		}
+	}
+
+	async function saveCostSharing(e: Event) {
+		e.preventDefault();
+		savingCostSharing = true;
+		try {
+			const updated = await authApi.updateProfile({
+				cost_sharing_mode: costSharingMode,
+				cost_sharing_percent: costSharingPercent
+			});
+			authStore.currentUser = updated;
+
+			if (partnerStore.partnerStatus === 'active' && partnerStore.partnerUser) {
+				const partnerPercent = 100 - costSharingPercent;
+				await pb.collection('users').update(partnerStore.partnerUser.id, {
+					cost_sharing_mode: costSharingMode,
+					cost_sharing_percent: partnerPercent
+				});
+				partnerStore.partnerUser.cost_sharing_mode = costSharingMode;
+				partnerStore.partnerUser.cost_sharing_percent = partnerPercent;
+			}
+			toast.success('Kostenaufteilung gespeichert!');
+		} catch (err: any) {
+			toast.error('Fehler beim Speichern: ' + err.message);
+		} finally {
+			savingCostSharing = false;
 		}
 	}
 
@@ -267,6 +300,74 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Kostenaufteilung Bereich -->
+	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+			<Users class="w-5 h-5 text-slate-500" />
+			Kostenaufteilung
+		</h3>
+		<p class="text-sm text-slate-500">
+			Lege fest, wie gemeinsame Kosten zwischen euch verrechnet werden sollen.
+		</p>
+		<form onsubmit={saveCostSharing} class="space-y-6">
+			<div class="flex bg-slate-100 p-1 rounded-xl">
+				<button
+					type="button"
+					onclick={() => costSharingMode = 'kasse'}
+					class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {costSharingMode === 'kasse' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+				>
+					Gemeinsame Kasse
+				</button>
+				<button
+					type="button"
+					onclick={() => costSharingMode = 'split'}
+					class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {costSharingMode === 'split' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+				>
+					Prozentualer Split
+				</button>
+			</div>
+
+			{#if costSharingMode === 'split'}
+				<div class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+					<div class="flex justify-between items-center text-sm font-medium">
+						<span class="text-slate-900">Du zahlst: {costSharingPercent}%</span>
+						<span class="text-slate-500">{partnerStore.partnerUser?.name || 'Partner'}: {100 - costSharingPercent}%</span>
+					</div>
+					<input
+						type="range"
+						min="5"
+						max="95"
+						step="5"
+						bind:value={costSharingPercent}
+						class="w-full accent-slate-900 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+					/>
+					<div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
+						<div class="bg-slate-900 h-full transition-all" style="width: {costSharingPercent}%"></div>
+						<div class="bg-slate-400 h-full transition-all" style="width: {100 - costSharingPercent}%"></div>
+					</div>
+					<p class="text-xs text-slate-500 text-center">
+						Wenn eine Transaktion geteilt wird, übernimmst du {costSharingPercent}% der Kosten.
+					</p>
+				</div>
+			{:else}
+				<div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+					<p class="text-sm text-slate-600 text-center">
+						Kosten werden 50/50 aufgeteilt. Schulden und Guthaben werden weiterhin ganz normal im Dashboard berechnet.
+					</p>
+				</div>
+			{/if}
+
+			<button
+				type="submit"
+				disabled={savingCostSharing}
+				class="w-full py-3 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50"
+			>
+				{savingCostSharing ? 'Speichere...' : 'Aufteilung speichern'}
+			</button>
+		</form>
+	</div>
+
 
 	<!-- Haushaltsbudget Bereich -->
 	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">

@@ -37,18 +37,15 @@ class TransactionStore {
 	// Derived states for balances based ONLY on unsettled transactions
 	myBalance = $derived(this.calculateTotalBalance());
 
-	fairSharingActive = $derived(
-		partnerStore.partnerStatus === 'active' &&
-		(authStore.currentUser?.income || 0) > 0 &&
-		(partnerStore.partnerUser?.income || 0) > 0
-	);
+	fairSharingActive = $derived(partnerStore.partnerStatus === 'active');
 
 	fairSharingRatio = $derived.by(() => {
-		if (!this.fairSharingActive) return 0;
-		const myIncome = authStore.currentUser?.income || 0;
-		const partnerIncome = partnerStore.partnerUser?.income || 0;
-		const total = myIncome + partnerIncome;
-		return total > 0 ? myIncome / total : 0;
+		if (!this.fairSharingActive) return 0.5;
+		const currentUser = authStore.currentUser;
+		if (currentUser?.cost_sharing_mode === 'split' && typeof currentUser.cost_sharing_percent === 'number') {
+			return currentUser.cost_sharing_percent / 100;
+		}
+		return 0.5;
 	});
 
 	fairBalance = $derived.by(() => {

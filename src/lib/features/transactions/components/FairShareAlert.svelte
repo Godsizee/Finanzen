@@ -29,7 +29,7 @@
 				<HeartHandshake class="w-5 h-5" />
 			</div>
 			<div class="flex-1 min-w-0">
-				<h4 class="text-sm font-semibold text-slate-900">Einkommensbasierter Ausgleich</h4>
+				<h4 class="text-sm font-semibold text-slate-900">Manuelle Kostenaufteilung</h4>
 				<p class="text-xs text-slate-500 mt-0.5">
 					Verhältnis: {myPercent}% ({meName}) zu {partnerPercent}% ({partnerName})
 				</p>
