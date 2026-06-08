@@ -1,80 +1,97 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
-	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { toCents } from '$lib/core/math';
-	import { toast } from '$lib/core/toastStore.svelte';
-	import { authStore } from '$lib/features/auth/authStore.svelte';
-	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
-	import { ArrowLeft, Trash2, ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
+	import { ArrowLeft } from '@lucide/svelte';
+
+	import { toast } from '$lib/core/toastStore.svelte';
+	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
+	import { ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
 
 	const iconMap: Record<string, any> = {
-		ShoppingBag,
-		Home,
-		Sparkles,
-		Car,
-		CircleEllipsis,
-		Zap,
-		Gamepad2,
-		Tv,
-		Utensils,
-		Heart,
-		Shield,
-		Shirt
+		ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt
 	};
 
-	let txId = $derived($page.params.id);
-	let tx = $derived(transactionStore.transactions.find(t => t.id === txId));
+	const id = $page.params.id;
 
-	// Form states
 	let type = $state<'expense' | 'deposit'>('expense');
 	let amount = $state('');
 	let note = $state('');
 	let payer = $state<'ich' | 'partner' | 'kasse'>('ich');
+	let splitMode = $state('50_50'); // 50_50, fair, me, partner, custom
 	let selectedCategoryId = $state<string>('');
+	let showAdvanced = $state(true);
 
-	let isInitialized = $state(false);
+	// Custom percentages/cents for custom split
+	let splitPercentMe = $state('50');
+	let splitPercentPartner = $state('50');
+	let splitAmountMe = $state('');
+	let splitAmountPartner = $state('');
+	let customSplitType = $state<'percent' | 'amount'>('percent');
+
 	let loading = $state(false);
 
-	// Load fields when transaction is loaded
-	$effect(() => {
-		if (tx && !isInitialized) {
-			const isDeposit = tx.split_mode === 'deposit';
-			type = isDeposit ? 'deposit' : 'expense';
-			amount = (tx.total_amount / 100).toFixed(2).replace('.', ',');
-			note = tx.note || '';
-			
-			if (tx.split_mode === 'kasse') {
-				payer = 'kasse';
-			} else if (tx.paid_by === authStore.currentUser?.id) {
-				payer = 'ich';
-			} else {
-				payer = 'partner';
-			}
+	onMount(async () => {
+		categoryStore.load();
+		partnerStore.loadPartnerStatus();
+		await transactionStore.load();
 
-			selectedCategoryId = tx.category || '';
-			isInitialized = true;
+		const tx = transactionStore.transactions.find((t) => t.id === id);
+		if (!tx) {
+			toast.error('Transaktion nicht gefunden');
+			goto('/history');
+			return;
+		}
+
+		amount = (tx.total_amount / 100).toString().replace('.', ',');
+		note = tx.note || '';
+		selectedCategoryId = tx.category || '';
+		type = tx.split_mode === 'deposit' ? 'deposit' : 'expense';
+
+		if (tx.split_mode === 'kasse') {
+			payer = 'kasse';
+			splitMode = 'kasse';
+		} else if (tx.split_mode === 'deposit') {
+			payer = tx.paid_by === authStore.currentUser?.id ? 'ich' : 'partner';
+			splitMode = 'deposit';
+		} else {
+			payer = tx.paid_by === authStore.currentUser?.id ? 'ich' : 'partner';
+			splitMode = tx.split_mode;
+
+			// Check for custom metadata
+			if (tx.split_mode === 'custom' && tx.metadata) {
+				try {
+					const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
+					if (meta.split_percent) {
+						customSplitType = 'percent';
+						splitPercentMe = meta.split_percent[authStore.currentUser?.id || '']?.toString() || '50';
+						splitPercentPartner = meta.split_percent[partnerStore.partnerUser?.id || '']?.toString() || '50';
+					} else if (meta.split_cents) {
+						customSplitType = 'amount';
+						splitAmountMe = ((meta.split_cents[authStore.currentUser?.id || ''] || 0) / 100).toString().replace('.', ',');
+						splitAmountPartner = ((meta.split_cents[partnerStore.partnerUser?.id || ''] || 0) / 100).toString().replace('.', ',');
+					}
+				} catch (e) {
+					console.error('Failed to parse metadata', e);
+				}
+			}
 		}
 	});
 
-	// Default to first category if empty
 	$effect(() => {
-		if (type === 'expense' && !selectedCategoryId && categoryStore.categories.length > 0) {
-			const sonstiges = categoryStore.categories.find(c => c.name === 'Sonstiges');
-			selectedCategoryId = sonstiges ? sonstiges.id : categoryStore.categories[0].id;
+		if (type === 'deposit' && payer === 'kasse') {
+			payer = 'ich';
 		}
 	});
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (!tx) return;
-		if (tx.settlement_id) {
-			toast.error('Abgerechnete Transaktionen können nicht bearbeitet werden.');
-			return;
-		}
 		if (!amount || isNaN(parseFloat(amount.replace(',', '.')))) {
 			toast.error('Bitte einen gültigen Betrag eingeben');
 			return;
@@ -83,113 +100,112 @@
 		loading = true;
 		const totalCents = toCents(amount);
 		
-		let splitMode = '50_50';
 		let paidBy = authStore.currentUser?.id;
-		
-		if (type === 'expense') {
-			if (payer === 'partner') {
-				if (!partnerStore.partnerUser) {
-					toast.error('Kein Partner gefunden!');
-					loading = false;
-					return;
-				}
-				paidBy = partnerStore.partnerUser.id;
-			} else if (payer === 'kasse') {
-				splitMode = 'kasse';
+		if (payer === 'partner') {
+			if (!partnerStore.partnerUser) {
+				toast.error('Kein Partner gefunden!');
+				loading = false;
+				return;
 			}
-		} else {
-			splitMode = 'deposit';
-			if (payer === 'partner') {
-				if (!partnerStore.partnerUser) {
-					toast.error('Kein Partner gefunden!');
+			paidBy = partnerStore.partnerUser.id;
+		}
+
+		let finalSplitMode = splitMode;
+		let metadata: any = null;
+
+		if (type === 'deposit') {
+			finalSplitMode = 'deposit';
+		} else if (payer === 'kasse') {
+			finalSplitMode = 'kasse';
+		}
+
+		if (finalSplitMode === 'custom') {
+			if (customSplitType === 'percent') {
+				const pctMe = parseFloat(splitPercentMe);
+				const pctPartner = parseFloat(splitPercentPartner);
+				if (isNaN(pctMe) || isNaN(pctPartner) || pctMe + pctPartner !== 100) {
+					toast.error('Die Prozentwerte müssen in der Summe 100 ergeben!');
 					loading = false;
 					return;
 				}
-				paidBy = partnerStore.partnerUser.id;
+				metadata = {
+					split_percent: {
+						[authStore.currentUser?.id || '']: pctMe,
+						[partnerStore.partnerUser?.id || '']: pctPartner
+					}
+				};
+			} else {
+				const valMe = parseFloat(splitAmountMe.replace(',', '.'));
+				const valPartner = parseFloat(splitAmountPartner.replace(',', '.'));
+				if (isNaN(valMe) || isNaN(valPartner) || Math.round((valMe + valPartner) * 100) !== totalCents) {
+					toast.error('Die Summe der Beträge muss dem Gesamtbetrag entsprechen!');
+					loading = false;
+					return;
+				}
+				metadata = {
+					split_cents: {
+						[authStore.currentUser?.id || '']: Math.round(valMe * 100),
+						[partnerStore.partnerUser?.id || '']: Math.round(valPartner * 100)
+					}
+				};
 			}
 		}
 
-		await transactionStore.updateTransaction(tx.id, {
+		const dataToUpdate: any = {
 			total_amount: totalCents,
 			paid_by: paidBy as string,
-			split_mode: splitMode,
+			split_mode: finalSplitMode,
 			note: note || (type === 'expense' ? 'Ausgabe' : 'Einzahlung'),
-			category: type === 'expense' ? selectedCategoryId : ''
-		});
+			category: type === 'expense' ? selectedCategoryId : null,
+			metadata: metadata
+		};
 
+		await transactionStore.updateTransaction(id, dataToUpdate);
 		loading = false;
-		goto('/');
-	}
-
-	async function handleDelete() {
-		if (!tx) return;
-		if (tx.settlement_id) {
-			toast.error('Abgerechnete Transaktionen können nicht gelöscht werden.');
-			return;
-		}
-
-		if (confirm('Möchtest du diese Transaktion wirklich löschen?')) {
-			loading = true;
-			await transactionStore.deleteTransaction(tx.id);
-			loading = false;
-			goto('/');
-		}
+		goto('/history');
 	}
 </script>
 
 <div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
-	<header class="mb-8 flex items-center justify-between">
-		<div class="flex items-center gap-4">
-			<button onclick={() => goto('/')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
-				<ArrowLeft size={24} class="text-slate-900" />
-			</button>
-			<h1 class="text-xl font-bold tracking-tight text-slate-900">Eintrag bearbeiten</h1>
-		</div>
-		{#if tx && !tx.settlement_id}
-			<button onclick={handleDelete} class="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors" aria-label="Löschen">
-				<Trash2 size={22} />
-			</button>
-		{/if}
+	<header class="mb-8 flex items-center gap-4">
+		<button onclick={() => goto('/history')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
+			<ArrowLeft size={24} class="text-slate-900" />
+		</button>
+		<h1 class="text-xl font-bold tracking-tight text-slate-900">
+			Eintrag bearbeiten
+		</h1>
 	</header>
 
-	{#if !tx}
-		<div class="text-center py-20 text-slate-500">
-			Transaktion nicht gefunden.
-		</div>
-	{:else if tx.settlement_id}
-		<div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-800 mb-6">
-			Diese Transaktion wurde bereits abgerechnet und kann aus Revisionssicherheitsgründen nicht mehr geändert oder gelöscht werden.
-		</div>
-	{:else}
-		<!-- Segment Control -->
-		<div class="flex bg-slate-200 p-1 rounded-xl mb-6">
-			<button 
-				type="button"
-				class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'expense' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
-				onclick={() => type = 'expense'}
-			>
-				Ausgabe
-			</button>
-			<button 
-				type="button"
-				class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'deposit' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
-				onclick={() => type = 'deposit'}
-			>
-				Einzahlung
-			</button>
-		</div>
+	<!-- Segment Control -->
+	<div class="flex bg-slate-200 p-1 rounded-xl mb-6">
+		<button 
+			type="button"
+			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'expense' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => type = 'expense'}
+		>
+			Ausgabe
+		</button>
+		<button 
+			type="button"
+			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'deposit' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => type = 'deposit'}
+		>
+			Einzahlung
+		</button>
+	</div>
 
-		<form onsubmit={handleSubmit} class="flex flex-col gap-6 flex-1">
-			<Input 
-				label="Betrag (€)" 
-				type="text" 
-				inputmode="decimal" 
-				placeholder="0,00" 
-				required 
-				bind:value={amount} 
-				class="text-lg"
-			/>
+	<form onsubmit={handleSubmit} class="flex flex-col gap-6 flex-1">
+		<Input 
+			label="Betrag (€)" 
+			type="text" 
+			inputmode="decimal" 
+			placeholder="0,00" 
+			required 
+			bind:value={amount} 
+			class="text-4xl font-bold mb-4"
+		/>
 
+		<div class="flex flex-col gap-6">
 			<Input 
 				label={type === 'expense' ? 'Wofür?' : 'Beschreibung (optional)'} 
 				type="text" 
@@ -198,7 +214,7 @@
 			/>
 
 			{#if type === 'expense'}
-				<div class="flex flex-col gap-2 mt-2">
+				<div class="flex flex-col gap-2">
 					<span class="text-sm font-medium text-slate-700">Kategorie</span>
 					<div class="grid grid-cols-3 gap-2">
 						{#each categoryStore.categories as cat (cat.id)}
@@ -217,7 +233,7 @@
 				</div>
 			{/if}
 
-			<div class="flex flex-col gap-2 mt-2">
+			<div class="flex flex-col gap-2">
 				<span class="text-sm font-medium text-slate-700">
 					{type === 'expense' ? 'Wer hat bezahlt?' : 'Wer zahlt ein?'}
 				</span>
@@ -253,11 +269,63 @@
 				</div>
 			</div>
 
-			<div class="mt-auto pt-6">
-				<Button type="submit" variant="primary" class="w-full">
-					{loading ? 'Wird gespeichert...' : 'Speichern'}
-				</Button>
-			</div>
-		</form>
-	{/if}
+			{#if type === 'expense' && payer !== 'kasse'}
+				<div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+					<label for="split-mode" class="text-sm font-medium text-slate-700">Kostenaufteilung</label>
+					<select 
+						id="split-mode"
+						bind:value={splitMode}
+						class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+					>
+						<option value="50_50">Geteilt (50:50)</option>
+						{#if partnerStore.partnerStatus === 'active'}
+							<option value="fair">Faires Split-Verhältnis (Einkommensbasiert)</option>
+						{/if}
+						<option value="me">Nur Ich (Persönliche Ausgabe)</option>
+						<option value="partner">Nur Partner</option>
+						<option value="custom">Individuelle Aufteilung (Prozent/Betrag)</option>
+					</select>
+				</div>
+
+				{#if splitMode === 'custom'}
+					<div class="p-4 bg-slate-100 rounded-2xl flex flex-col gap-4 border border-slate-200/50 animate-in fade-in slide-in-from-top-2 duration-200">
+						<div class="flex bg-slate-200 p-0.5 rounded-lg self-start">
+							<button 
+								type="button"
+								class="px-3 py-1 text-xs font-semibold rounded-md transition-all {customSplitType === 'percent' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}"
+								onclick={() => customSplitType = 'percent'}
+							>
+								Prozent
+							</button>
+							<button 
+								type="button"
+								class="px-3 py-1 text-xs font-semibold rounded-md transition-all {customSplitType === 'amount' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}"
+								onclick={() => customSplitType = 'amount'}
+							>
+								Betrag
+							</button>
+						</div>
+
+						{#if customSplitType === 'percent'}
+							<div class="grid grid-cols-2 gap-4">
+								<Input label="Ich (%)" type="number" min="0" max="100" bind:value={splitPercentMe} />
+								<Input label="Partner (%)" type="number" min="0" max="100" bind:value={splitPercentPartner} />
+							</div>
+						{:else}
+							<div class="grid grid-cols-2 gap-4">
+								<Input label="Ich (€)" type="text" placeholder="0,00" bind:value={splitAmountMe} />
+								<Input label="Partner (€)" type="text" placeholder="0,00" bind:value={splitAmountPartner} />
+							</div>
+						{/if}
+					</div>
+				{/if}
+			{/if}
+		</div>
+
+		<div class="mt-auto pt-6">
+			<Button type="submit" variant="primary" class="w-full">
+				{loading ? 'Wird gespeichert...' : 'Änderungen speichern'}
+			</Button>
+		</div>
+	</form>
 </div>

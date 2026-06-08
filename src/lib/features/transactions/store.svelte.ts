@@ -74,8 +74,37 @@ class TransactionStore {
 		const myId = authStore.currentUser?.id;
 		if (!myId) return 0;
 		return this.unsettledTransactions.reduce((acc, tx) => {
+			if (tx.split_mode === 'kasse') return acc;
+			
+			const totalAmount = tx.total_amount;
 			const didIPay = tx.paid_by === myId;
-			return acc + calculateBalance(tx.total_amount, tx.split_mode, didIPay);
+			
+			let myShare = Math.round(totalAmount / 2); // Default 50_50
+			
+			if (tx.split_mode === 'fair' && this.fairSharingActive) {
+				const ratio = this.fairSharingRatio;
+				myShare = Math.round(totalAmount * ratio);
+			} else if (tx.split_mode === 'me') {
+				myShare = totalAmount;
+			} else if (tx.split_mode === 'partner') {
+				myShare = 0;
+			} else if (tx.split_mode === 'custom' && tx.metadata) {
+				try {
+					const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
+					if (meta.split_cents && meta.split_cents[myId] !== undefined) {
+						myShare = meta.split_cents[myId];
+					} else if (meta.split_percent && meta.split_percent[myId] !== undefined) {
+						myShare = Math.round(totalAmount * (meta.split_percent[myId] / 100));
+					}
+				} catch (e) {
+					console.error('Error parsing custom split metadata', e);
+				}
+			} else if (tx.split_mode === 'deposit') {
+				myShare = Math.round(totalAmount / 2);
+			}
+			
+			const myContribution = didIPay ? totalAmount : 0;
+			return acc + (myContribution - myShare);
 		}, 0);
 	}
 

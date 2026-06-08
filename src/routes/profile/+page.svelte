@@ -98,10 +98,29 @@
 		if (authStore.currentUser) {
 			incomeInput = authStore.currentUser.income ? (authStore.currentUser.income / 100).toString() : '';
 		}
+		const storedBudget = localStorage.getItem('fairshare_monthly_budget');
+		if (storedBudget) {
+			budgetInput = (parseInt(storedBudget) / 100).toString().replace('.', ',');
+		}
 	});
 
 	onMount(() => {
 		partnerStore.loadPartnerStatus();
+		
+		// Check for invite query param
+		const inviteEmail = new URLSearchParams(window.location.search).get('invite');
+		if (inviteEmail && !partnerStore.partnerUser) {
+			searchEmail = decodeURIComponent(inviteEmail);
+			partnerStore.searchByEmail(searchEmail).then(res => {
+				if (res) {
+					searchResult = res;
+					const confirmInvite = confirm(`Möchtest du ${res.name} (${res.email}) als Partner einladen?`);
+					if (confirmInvite) {
+						partnerStore.sendInvite(res.id);
+					}
+				}
+			});
+		}
 	});
 
 	function handleLogout() {
@@ -137,6 +156,35 @@
 		} finally {
 			savingIncome = false;
 		}
+	}
+
+	async function saveBudget(e: Event) {
+		e.preventDefault();
+		savingBudget = true;
+		try {
+			const parsed = parseFloat(budgetInput.replace(',', '.'));
+			if (isNaN(parsed) || parsed < 0) {
+				toast.error('Bitte ein gültiges Budget eingeben.');
+				return;
+			}
+			const cents = Math.round(parsed * 100);
+			localStorage.setItem('fairshare_monthly_budget', cents.toString());
+			toast.success('Haushaltsbudget gespeichert!');
+		} catch (err: any) {
+			toast.error('Fehler beim Speichern: ' + err.message);
+		} finally {
+			savingBudget = false;
+		}
+	}
+
+	function copyInviteLink() {
+		if (!authStore.currentUser?.email) return;
+		const link = window.location.origin + '/profile?invite=' + encodeURIComponent(authStore.currentUser.email);
+		navigator.clipboard.writeText(link).then(() => {
+			toast.success('Einladungslink kopiert!');
+		}).catch(() => {
+			toast.error('Fehler beim Kopieren des Links.');
+		});
 	}
 </script>
 
@@ -218,6 +266,37 @@
 		{/if}
 	</div>
 
+	<!-- Haushaltsbudget Bereich -->
+	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+			<Coins class="w-5 h-5 text-slate-500" />
+			Gemeinsames Monatsbudget
+		</h3>
+		<p class="text-sm text-slate-500">
+			Lege ein monatliches Budget für euren gemeinsamen Haushalt fest, um das noch verfügbare Geld auf dem Dashboard anzuzeigen.
+		</p>
+		<form onsubmit={saveBudget} class="flex gap-2">
+			<div class="relative flex-1">
+				<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">€</span>
+				<input
+					type="text"
+					inputmode="decimal"
+					bind:value={budgetInput}
+					placeholder="z. B. 1000"
+					required
+					class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium"
+				/>
+			</div>
+			<button
+				type="submit"
+				disabled={savingBudget}
+				class="px-6 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px]"
+			>
+				{savingBudget ? '...' : 'Speichern'}
+			</button>
+		</form>
+	</div>
+
 	<!-- Partner Bereich -->
 	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
 		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -285,8 +364,22 @@
 		{:else}
 			<div class="space-y-4">
 				<p class="text-sm text-slate-500">
-					Du kannst die App gemeinsam mit deinem Partner nutzen. Such nach seiner E-Mail-Adresse, um eine Einladung zu senden.
+					Du kannst die App gemeinsam mit deinem Partner nutzen. Such nach seiner E-Mail-Adresse oder teile einen Einladungslink.
 				</p>
+
+				<button 
+					type="button" 
+					onclick={copyInviteLink} 
+					class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2 text-sm"
+				>
+					<UserPlus size={16} /> Einladungslink kopieren
+				</button>
+				
+				<div class="flex items-center my-2">
+					<div class="flex-1 h-px bg-slate-200"></div>
+					<span class="px-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider">Oder</span>
+					<div class="flex-1 h-px bg-slate-200"></div>
+				</div>
 
 				<form onsubmit={handleSearch} class="flex gap-2">
 					<div class="relative flex-1">
