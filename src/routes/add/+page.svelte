@@ -276,7 +276,7 @@
 										{selectedCategoryId === cat.id ? 'border-slate-900 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'}"
 									onclick={() => selectedCategoryId = cat.id}
 								>
-									<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4 {selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'}" />
+									<svelte:component this={IconComponent} class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4 {selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'}" />
 									<span class="text-[11px] max-[340px]:text-[8px] font-semibold mt-1 leading-tight">{cat.name}</span>
 								</button>
 							{/each}
