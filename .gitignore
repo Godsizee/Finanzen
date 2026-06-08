@@ -1,29 +1,43 @@
-node_modules
+# Dependencies
+node_modules/
 
-# Output
-.output
-.vercel
-.netlify
-.wrangler
-/.svelte-kit
-/build
+# SvelteKit & Build outputs
+.svelte-kit/
+build/
+dist/
+.output/
 
-# OS
+# OS/System files
 .DS_Store
 Thumbs.db
 
-# Env
+# Environment variables
 .env
 .env.*
 !.env.example
 !.env.test
 
-# Vite
+# Vite timestamps
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Dist
-/dist
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# PocketBase (Security!)
-/pb_data/
+# PocketBase (local data and executables)
+pb_data/
+pocketbase
+pocketbase.exe
+
+# IDE / Editors
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
