@@ -38,7 +38,7 @@ class PartnerStore {
 					this.partnerStatus = 'none';
 				}
 			}
-		} catch (err: any) {
+		} catch (err) {
 			console.error('Fehler beim Laden des Partner-Status', err);
 		}
 	}
@@ -54,7 +54,7 @@ class PartnerStore {
 				return null;
 			}
 			return res;
-		} catch (err) {
+		} catch {
 			return null;
 		}
 	}
@@ -68,7 +68,7 @@ class PartnerStore {
 			authStore.currentUser = updatedMe;
 			toast.success('Einladung gesendet!');
 			await this.loadPartnerStatus();
-		} catch (err: any) {
+		} catch {
 			toast.error('Einladung konnte nicht gesendet werden.');
 		}
 	}
@@ -82,7 +82,7 @@ class PartnerStore {
 			authStore.currentUser = updatedMe;
 			toast.success('Partnerschaft erfolgreich bestätigt!');
 			await this.loadPartnerStatus();
-		} catch (err: any) {
+		} catch {
 			toast.error('Fehler beim Bestätigen der Partnerschaft.');
 		}
 	}
@@ -96,7 +96,7 @@ class PartnerStore {
 			});
 			toast.info('Einladung abgelehnt.');
 			await this.loadPartnerStatus();
-		} catch (err: any) {
+		} catch {
 			toast.error('Fehler beim Ablehnen der Einladung.');
 		}
 	}
@@ -113,7 +113,7 @@ class PartnerStore {
 			authStore.currentUser = updatedMe;
 			toast.info('Verpartnerung aufgehoben.');
 			await this.loadPartnerStatus();
-		} catch (err: any) {
+		} catch {
 			toast.error('Fehler beim Aufheben der Verpartnerung.');
 		}
 	}
