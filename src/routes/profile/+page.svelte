@@ -15,6 +15,8 @@
 
 	let incomeInput = $state('');
 	let savingIncome = $state(false);
+	let budgetInput = $state('');
+	let savingBudget = $state(false);
 
 	let oldPassword = $state('');
 	let newPassword = $state('');
