@@ -100,14 +100,14 @@
 
 	<!-- Abrechnungsmodus Switcher -->
 	<div class="flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs max-[340px]:pt-2">
-		<span class="text-slate-400 font-medium">Aufteilung:</span>
+		<span class="text-slate-400 font-medium">Standard-Split:</span>
 		<select
 			value={authStore.currentUser?.cost_sharing_mode || '50_50'}
 			onchange={handleModeChange}
 			class="rounded-lg bg-slate-800 border border-slate-700 text-white px-2 py-1 focus:outline-none cursor-pointer text-[11px] font-medium transition-colors hover:border-slate-600"
 		>
-			<option value="50_50">Jeder zahlt seins selbst (50:50)</option>
-			<option value="income_ratio">Nach Nettoeinkommen</option>
+			<option value="50_50">50/50 Split</option>
+			<option value="income_ratio">Einkommensbasierter Split</option>
 		</select>
 	</div>
 

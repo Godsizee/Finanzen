@@ -371,14 +371,14 @@
 		{/if}
 	</div>
 
-	<!-- Kostenaufteilung Bereich -->
+	<!-- Standard-Split Bereich -->
 	<div class="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
 		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
 			<Users class="h-5 w-5 text-slate-500" />
-			Kostenaufteilung
+			Standard-Split
 		</h3>
 		<p class="text-sm text-slate-500">
-			Lege fest, wie gemeinsame Kosten zwischen euch verrechnet werden sollen.
+			Lege fest, wie gemeinsame Ausgaben standardmäßig gesplittet werden sollen.
 		</p>
 		<form onsubmit={saveCostSharing} class="space-y-6">
 			<div class="flex rounded-xl bg-slate-100 p-1">
@@ -390,7 +390,7 @@
 						? 'bg-white text-slate-900 shadow-sm'
 						: 'text-slate-500 hover:text-slate-700'}"
 				>
-					Gleichmäßig 50/50
+					50/50 Split
 				</button>
 				<button
 					type="button"
@@ -400,7 +400,7 @@
 						? 'bg-white text-slate-900 shadow-sm'
 						: 'text-slate-500 hover:text-slate-700'}"
 				>
-					Nach Nettoeinkommen
+					Einkommensbasierter Split
 				</button>
 			</div>
 

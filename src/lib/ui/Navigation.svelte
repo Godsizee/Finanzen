@@ -107,7 +107,7 @@
 	<div class="border-t border-slate-800 p-4 mt-auto">
 		<div class="flex flex-col gap-1.5">
 			<label for="desktop-mode-select" class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-				Aufteilung
+				Standard-Split
 			</label>
 			<select
 				id="desktop-mode-select"
@@ -115,8 +115,8 @@
 				onchange={handleModeChange}
 				class="w-full rounded-lg bg-slate-800 border border-slate-700 text-white px-3 py-2 focus:outline-none cursor-pointer text-xs font-medium transition-colors hover:border-slate-600 animate-none"
 			>
-				<option value="50_50">Jeder zahlt seins selbst (50:50)</option>
-				<option value="income_ratio">Nach Nettoeinkommen</option>
+				<option value="50_50">50/50 Split</option>
+				<option value="income_ratio">Einkommensbasierter Split</option>
 			</select>
 		</div>
 	</div>
