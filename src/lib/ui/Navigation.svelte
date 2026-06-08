@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Home, History, Plus, Repeat, Users } from 'lucide-svelte';
+	import { Home, History, Plus, Repeat, Users } from '@lucide/svelte';
 	import { page } from '$app/stores';
 
 	let currentPath = $derived($page.url.pathname);
