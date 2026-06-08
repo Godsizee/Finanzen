@@ -65,8 +65,8 @@
 			const settlement = await settlementApi.create({
 				date: new Date().toISOString(),
 				amount,
-				created_by: authStore.currentUser.id,
-				settled_with: partnerStore.partnerUser.id
+				created_by: authStore.currentUser!.id,
+				settled_with: partnerStore.partnerUser!.id
 			});
 
 			await transactionStore.settle(settlement.id);

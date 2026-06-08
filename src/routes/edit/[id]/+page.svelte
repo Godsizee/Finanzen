@@ -18,7 +18,7 @@
 		ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt
 	};
 
-	const id = $page.params.id;
+	const id = $page.params.id as string;
 
 	let type = $state<'expense' | 'deposit'>('expense');
 	let amount = $state('');

@@ -8,6 +8,7 @@ export interface TransactionCreate {
 	split_mode: string;
 	note?: string;
 	category?: string;
+	metadata?: any;
 }
 
 export const transactionApi = {

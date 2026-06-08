@@ -7,6 +7,9 @@
 		placeholder = '',
 		required = false,
 		autofocus = false,
+		min,
+		max,
+		step,
 		class: className = ''
 	}: {
 		value: any;
@@ -16,6 +19,9 @@
 		placeholder?: string;
 		required?: boolean;
 		autofocus?: boolean;
+		min?: string | number;
+		max?: string | number;
+		step?: string | number;
 		class?: string;
 	} = $props();
 </script>
@@ -30,6 +36,9 @@
 		{placeholder}
 		{required}
 		{autofocus}
+		{min}
+		{max}
+		{step}
 		bind:value
 		class="min-h-[48px] px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
 	/>
