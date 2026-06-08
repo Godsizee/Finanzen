@@ -22,7 +22,7 @@
 	let partnerName = $derived(partnerStore.partnerUser?.name || 'Partner');
 </script>
 
-{#if active && balance !== 0}
+{#if active && balance !== 0 && authStore.currentUser?.cost_sharing_mode !== 'income_ratio'}
 	<Card class="mt-4 flex flex-col gap-3 border border-slate-200/60 bg-slate-50 p-5 shadow-xs">
 		<div class="flex items-start gap-3">
 			<div class="rounded-lg bg-slate-900/5 p-2 text-slate-800">

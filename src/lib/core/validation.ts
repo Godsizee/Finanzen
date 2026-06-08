@@ -19,7 +19,11 @@ export function isValidPassword(password: string): { valid: boolean; message?: s
 }
 
 export function isValidAmount(amount: string): boolean {
-	const normalized = amount.replace(',', '.');
+	const normalized = amount.trim().replace(',', '.');
+	const amountRegex = /^\d+(\.\d{1,2})?$/;
+	if (!amountRegex.test(normalized)) {
+		return false;
+	}
 	const parsed = parseFloat(normalized);
 	return !isNaN(parsed) && parsed > 0;
 }

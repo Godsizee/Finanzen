@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
 	import { toCents } from '$lib/core/math';
+	import { isValidAmount } from '$lib/core/validation';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import { ArrowLeft } from '@lucide/svelte';
@@ -46,7 +47,12 @@
 	let amount = $state('');
 	let note = $state('');
 	let payer = $state<'ich' | 'partner' | 'kasse'>('ich');
-	let splitMode = $state('50_50'); // 50_50, fair, me, partner, custom
+	let splitMode = $state('50_50'); // 50_50, income_ratio, me, partner, custom
+	$effect(() => {
+		if (authStore.currentUser) {
+			splitMode = authStore.currentUser.cost_sharing_mode === 'income_ratio' ? 'income_ratio' : '50_50';
+		}
+	});
 	let selectedCategoryId = $state<string>('');
 	let showAdvanced = $state(false);
 
@@ -142,7 +148,7 @@
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (!amount || isNaN(parseFloat(amount.replace(',', '.')))) {
+		if (!isValidAmount(amount)) {
 			toast.error('Bitte einen gültigen Betrag eingeben');
 			return;
 		}
@@ -170,7 +176,20 @@
 			finalSplitMode = 'kasse';
 		}
 
-		if (type === 'expense' && payer !== 'kasse' && finalSplitMode === 'custom') {
+		if (type === 'expense' && payer !== 'kasse' && (finalSplitMode === 'income_ratio' || finalSplitMode === 'fair')) {
+			const myIncome = authStore.currentUser?.income || 0;
+			const partnerIncome = partnerStore.partnerUser?.income || 0;
+			const total = myIncome + partnerIncome;
+			const myPercent = total > 0 ? Math.round((myIncome / total) * 100) : 50;
+			const partnerPercent = 100 - myPercent;
+
+			metadata = {
+				split_percent: {
+					[authStore.currentUser?.id || '']: myPercent,
+					[partnerStore.partnerUser?.id || '']: partnerPercent
+				}
+			};
+		} else if (type === 'expense' && payer !== 'kasse' && finalSplitMode === 'custom') {
 			if (customSplitType === 'percent') {
 				const pctMe = parseFloat(splitPercentMe);
 				const pctPartner = parseFloat(splitPercentPartner);
@@ -206,24 +225,28 @@
 			}
 		}
 
-		const record = await transactionStore.addTransaction({
-			total_amount: totalCents,
-			date: new Date().toISOString(),
-			paid_by: paidBy as string,
-			split_mode: finalSplitMode,
-			note: note || (type === 'expense' ? 'Ausgabe' : 'Einzahlung'),
-			category: type === 'expense' ? selectedCategoryId : undefined,
-			metadata: metadata
-		});
-
-		if (record) {
-			toast.success('Erfolgreich gespeichert', 'Rückgängig', async () => {
-				await transactionStore.deleteTransaction(record.id);
+		try {
+			const record = await transactionStore.addTransaction({
+				total_amount: totalCents,
+				date: new Date().toISOString(),
+				paid_by: paidBy as string,
+				split_mode: finalSplitMode,
+				note: note || (type === 'expense' ? 'Ausgabe' : 'Einzahlung'),
+				category: type === 'expense' ? selectedCategoryId : undefined,
+				metadata: metadata
 			});
-		}
 
-		loading = false;
-		goto('/');
+			if (record) {
+				toast.success('Erfolgreich gespeichert', 'Rückgängig', async () => {
+					await transactionStore.deleteTransaction(record.id);
+				});
+				goto('/');
+			}
+		} catch (err: any) {
+			toast.error('Fehler beim Speichern: ' + (err.message || err));
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 
@@ -407,7 +430,7 @@
 						>
 							<option value="50_50">Geteilt (50:50)</option>
 							{#if partnerStore.partnerStatus === 'active'}
-								<option value="fair">Faires Split-Verhältnis (Einkommensbasiert)</option>
+								<option value="income_ratio">Nach Nettoeinkommen (Einkommensbasiert)</option>
 							{/if}
 							<option value="me">Nur Ich (Persönliche Ausgabe)</option>
 							<option value="partner">Nur Partner</option>

@@ -1,841 +1,656 @@
----
-title: Finanzen-App – UX-Analyse und priorisierte Erweiterungen
-aliases:
-  - Finanzen App UX
-  - Haushalts-App Verbesserungen
-tags:
-  - projekt/finanzen-app
-  - ux
-  - familienfinanzen
-  - webentwicklung
-  - roadmap
-status: entwurf
-created: 2026-06-08
-updated: 2026-06-08
-source_repository: https://github.com/Godsizee/Finanzen
----
+## Gesamteinschätzung
 
-# Finanzen-App – UX-Analyse und priorisierte Erweiterungen
+Die Heimfinanz-App ist bereits deutlich weiter als ein einfaches MVP. Die Grundidee ist gut: mobile Nutzung, schnelle Erfassung, getrennte Konten, Gemeinschaftskasse, Partner-Verknüpfung, Abrechnung, wiederkehrende Ausgaben und eine übersichtliche Monatsstatistik. Im ursprünglichen Konzept ist sogar ausdrücklich vorgesehen, dass eine Ausgabe in maximal drei Taps erfasst werden kann. ([GitHub][1])
 
-> [!summary]
-> Die App besitzt bereits eine gute fachliche Grundlage: Sie trennt sinnvoll zwischen **Zahlungsfluss** („Wer hat bezahlt?“) und **Kostenaufteilung** („Wer soll welchen Anteil tragen?“).  
-> Der größte Hebel liegt jetzt nicht in möglichst vielen neuen Funktionen, sondern in einer schnelleren Bedienung, einer klareren Startseite und einer verständlichen Abrechnung.
+Für die private Nutzung würde ich jetzt **nicht sofort weitere große Module hinzufügen**. Der höchste Nutzen entsteht zunächst durch:
 
-## Inhaltsübersicht
+1. absolut verlässliche Berechnungen,
+2. eine noch schnellere Alltagserfassung,
+3. verständliche Abrechnungen,
+4. robuste Offline-Nutzung,
+5. Backups und einfache Korrekturmöglichkeiten.
 
-- [[#1 Zielbild]]
-- [[#2 Die drei wichtigsten UX-Verbesserungen]]
-- [[#3 Weitere Verbesserungen mit hohem Nutzen]]
-- [[#4 Sinnvolle Erweiterungen nach Mehrwert priorisiert]]
-- [[#5 Empfohlene Umsetzungsreihenfolge]]
-- [[#6 Abnahmekriterien für eine spürbar bessere Bedienbarkeit]]
-- [[#7 Grundsätze für die Weiterentwicklung]]
-- [[#8 Referenzen zum Projekt]]
+Ein kompletter Neuaufbau ist nicht erforderlich. Die vorhandene Basis ist sinnvoll schlank.
 
 ---
 
-## 1. Zielbild
+# 1. Zuerst beheben: Risiken für falsche Finanzdaten
 
-Die App sollte im Alltag einer Familie drei Fragen besonders schnell beantworten:
+Diese Punkte sind wichtiger als neue Komfortfunktionen.
 
-1. **Wer muss wem aktuell Geld überweisen?**
-2. **Wie viel Geld ist diesen Monat noch verfügbar?**
-3. **Wie kann ich eine Ausgabe in wenigen Sekunden erfassen?**
+| Priorität | Thema                                  | Warum es wichtig ist                                                                                                                                                                            | Empfohlene Änderung                                                                                                                                                  |
+| --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0        | Abrechnungsmodus eindeutig festlegen   | Aktuell existieren gleichzeitig eine normale 50/50-Berechnung und eine einkommensabhängige Fair-Share-Empfehlung. Der Abrechnungsbutton verwendet weiterhin den normalen Saldo.                 | In den Einstellungen einen Haushaltsmodus auswählen: **50/50** oder **nach Nettoeinkommen**. Dieselbe Berechnung muss auf Startseite, Verlauf und Abrechnung gelten. |
+| P0        | Abrechnung atomar ausführen            | Beim Abrechnen werden mehrere Buchungen einzeln aktualisiert. Scheitert eine Anfrage mittendrin, können bereits einige Buchungen serverseitig als abgerechnet markiert sein, andere aber nicht. | Einen serverseitigen Abrechnungs-Endpunkt verwenden. Entweder alles wird gespeichert oder nichts. Zusätzlich Status `Entwurf`, `bezahlt`, `storniert`.               |
+| P0        | Doppelte Fixkosten verhindern          | Wiederkehrende Buchungen werden clientseitig erzeugt. Öffnen beide Partner die App nahezu gleichzeitig, können dieselben Fixkosten doppelt entstehen.                                           | Pro Regel und Fälligkeitsdatum einen eindeutigen Schlüssel speichern, etwa `regel_id + faelligkeitsdatum`. Die Erzeugung serverseitig idempotent machen.             |
+| P0        | Benutzerdefinierte Aufteilungen prüfen | Die Bearbeitungsseite kennt Modi wie `fair`, `me`, `partner` und `custom`. Die zentrale Berechnung fällt bei nicht speziell behandelten Modi jedoch auf 50/50 zurück.                           | Entweder vorläufig nur vollständig implementierte Modi zulassen oder sämtliche Modi zentral berechnen und testen.                                                    |
+| P0        | Eingabefehler sichtbar behandeln       | Beim Speichern wird ein Fehler im Store abgefangen, aber nicht weitergegeben. Die Eingabemaske kann dadurch geschlossen werden, obwohl die Buchung nicht gespeichert wurde.                     | Bei Fehlern in der Maske bleiben, deutliche Meldung anzeigen und erneutes Speichern anbieten.                                                                        |
 
-Die Bedienung sollte konsequent auf Smartphones optimiert werden. Häufige Aktionen müssen ohne Umwege erreichbar sein. Komplexere Sonderfälle sollten erst dann sichtbar werden, wenn sie tatsächlich benötigt werden.
+Die Inkonsistenz beim Fair-Share-Modus ist bereits in mehreren Stellen sichtbar: Die Startseite zeigt den normalen Saldo, zusätzlich erscheint eine einkommensabhängige Empfehlung, während die Abrechnung weiterhin mit dem normalen Saldo arbeitet. ([github.com][2])
 
-> [!important]
-> Die App sollte nicht wie eine Buchhaltungssoftware wirken.  
-> Sie sollte sich wie ein unkompliziertes gemeinsames Haushaltswerkzeug anfühlen.
+Auch die aktuelle Mehrfachaktualisierung beim Abrechnen sollte geändert werden: Die Abrechnung wird zuerst angelegt, anschließend werden die einzelnen Transaktionen parallel aktualisiert. Ein lokales Zurücksetzen im Browser kann bereits gespeicherte Serveränderungen nicht zuverlässig rückgängig machen. ([GitHub][2])
+
+PocketBase lässt sich bei solchen Spezialfällen durch eigene serverseitige Routen erweitern. Für eine private App reicht ein schlanker Endpunkt für „Abrechnung abschließen“ und einer für „fällige Fixkosten erzeugen“. ([pocketbase.io][3])
 
 ---
 
-## 2. Die drei wichtigsten UX-Verbesserungen
+# 2. Die wichtigste Produktentscheidung: Wie wird fair abgerechnet?
 
-### 2.1 Startseite: Handlungsempfehlung statt abstrakter Kennzahl
+Die App sollte nicht gleichzeitig zwei unterschiedliche Wahrheiten zeigen.
 
-Aktuell wird das gemeinsame Nettoeinkommen sehr prominent dargestellt. Für die tägliche Nutzung ist jedoch die offene Ausgleichszahlung wichtiger.
+## Empfohlene Lösung
 
-Die größte Aussage auf der Startseite sollte daher lauten:
+Unter **Profil → Haushalt → Aufteilung** wird einmal festgelegt:
 
-> **Du bekommst 84,30 € zurück.**  
-> Dein Partner sollte dir diesen Betrag überweisen.
+* **Gleichmäßig 50/50**
+* **Nach Nettoeinkommen**
+* optional später: **individuelle Aufteilung pro Ausgabe**
+
+Beispiel:
+
+> Viktor übernimmt 60 %, Anna übernimmt 40 %.
+> Gültig ab: 1. Juli 2026.
+
+Wichtig ist das Gültigkeitsdatum. Ändert sich später ein Einkommen, dürfen alte Buchungen nicht unbemerkt rückwirkend neu berechnet werden. Sinnvoll ist daher, bei jeder Buchung einen Snapshot zu speichern:
+
+```text
+split_mode: income_ratio
+split_ratio_paid_by: 60
+split_ratio_partner: 40
+```
+
+Damit bleibt jede frühere Abrechnung nachvollziehbar.
+
+Für den privaten Alltag genügt ein globaler Standard. Die Sonderaufteilung einzelner Buchungen sollte hinter **„Weitere Optionen“** liegen und nicht jede Erfassung verlangsamen.
+
+---
+
+# 3. Frictionless UX: Eine Ausgabe in wenigen Sekunden erfassen
+
+Der häufigste Ablauf sollte extrem einfach sein:
+
+```text
+Plus drücken
+→ Betrag eingeben
+→ zuletzt verwendete Kategorie antippen
+→ speichern
+```
+
+Aktuell enthält die Erfassungsseite bereits Betrag, Notiz, Kategorien, Zahler und verschiedene Typen. Das ist funktional gut, aber für den täglichen Einkauf kann die Oberfläche weiter reduziert werden. ([GitHub][4])
+
+## Idealer Standardablauf
+
+### Sofort sichtbar
+
+* Zahlenfeld mit automatisch geöffnetem Nummernblock
+* große Betragsanzeige
+* 4 bis 6 zuletzt verwendete Kategorien
+* Schaltfläche **Speichern**
+* Zahler als kleiner Umschalter mit sinnvoller Vorauswahl
+
+### Eingeklappt unter „Weitere Optionen“
+
+* Datum ändern
+* Notiz
+* andere Person hat bezahlt
+* Gemeinschaftskasse
+* individuelle Aufteilung
+* Belegfoto
+* wiederkehrende Ausgabe anlegen
+
+### Sinnvolle Automatiken
+
+* Zahler standardmäßig: angemeldete Person
+* zuletzt verwendete Kategorie vorschlagen
+* bei gleichem Notiztext dieselbe Kategorie vorschlagen
+* nach Speichern Toast anzeigen:
+  **„24,80 € Lebensmittel gespeichert · Rückgängig“**
+* zweite Aktion im Toast:
+  **„Weitere Ausgabe erfassen“**
+
+## Kleine Funktionen mit sehr hohem Nutzen
+
+| Funktion                               | Nutzen im Alltag                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------- |
+| **Letzte Buchung wiederholen**         | Ideal für wiederkehrende kleine Ausgaben wie Bäcker, Parken oder Taschengeld. |
+| **Buchung duplizieren**                | Betrag oder Datum kurz anpassen, statt alles erneut einzugeben.               |
+| **Favoriten-Kategorien**               | Lebensmittel, Drogerie, Tanken, Restaurant direkt erreichbar.                 |
+| **Rückgängig nach Speichern**          | Verhindert unnötiges Öffnen und Bearbeiten bei Tippfehlern.                   |
+| **Schnellzugriff Gemeinschaftskasse**  | Einzahlung oder Barausgabe mit einem zusätzlichen Tap.                        |
+| **Haptisches oder visuelles Feedback** | Klare Bestätigung, dass die Buchung wirklich gespeichert wurde.               |
+
+## Betragseingabe robuster machen
+
+Die aktuelle Validierung basiert auf `parseFloat`. Dadurch können ungültige Eingaben teilweise unerwartet akzeptiert werden, beispielsweise Texte, die mit einer Zahl beginnen. Außerdem sollten Nullbeträge und negative Beträge nicht versehentlich als normale Ausgaben gespeichert werden. ([GitHub][4])
+
+Empfehlung:
+
+* Komma und Punkt akzeptieren
+* intern immer Cent-Beträge speichern
+* nur positive Beträge zulassen
+* negative Beträge ausschließlich über einen klaren Vorgang **„Korrekturbuchung“**
+* eine zentrale Money-Input-Komponente für alle Formulare verwenden
+
+---
+
+# 4. Startseite: Saldo statt Einkommen in den Mittelpunkt
+
+Die Startseite zeigt aktuell das gemeinsame Einkommen sehr prominent. Für die Einrichtung ist das nützlich, im täglichen Einsatz ist aber meistens eine andere Frage entscheidend:
+
+> Muss gerade jemand Geld überweisen?
+
+Der große Hauptbereich sollte daher zeigen:
+
+```text
+Anna schuldet dir 84,30 €
+```
 
 oder:
 
-> **Ihr seid quitt.**  
-> Aktuell ist kein Ausgleich erforderlich.
-
-Darunter können kompakt weitere Kennzahlen erscheinen:
-
-- Gemeinsame Kasse: 215,80 €
-- Ausgaben im Juni: 1.438,20 €
-- Noch verfügbar im Juni: 1.126,40 €
-- Standardaufteilung: 56 % / 44 % nach Einkommen
-
-#### Umsetzung
-
-- [ ] Hero-Card auf offenen Ausgleichsbetrag umstellen
-- [ ] Aussage in verständlicher Sprache formulieren
-- [ ] „Wer zahlt wem?“ immer explizit anzeigen
-- [ ] Einkommen nur noch sekundär darstellen
-- [ ] „Ihr seid quitt“ als positiven Nullzustand gestalten
-
-**Nutzen:** Die App beantwortet die wichtigste Frage sofort, ohne dass Zahlen interpretiert werden müssen.
-
----
-
-### 2.2 Feste Navigation am unteren Bildschirmrand
-
-Für die mobile Nutzung sollte eine Bottom-Navigation eingeführt werden. Häufig genutzte Funktionen sind dort deutlich leichter mit dem Daumen erreichbar als im oberen Bereich des Bildschirms.
-
-| Bereich   | Zweck                                   |
-| --------- | --------------------------------------- |
-| Übersicht | Aktueller Saldo und Monatsstatus        |
-| Verlauf   | Ausgaben suchen, prüfen und korrigieren |
-| **+**     | Neue Ausgabe oder Einzahlung            |
-| Fixkosten | Wiederkehrende Kosten                   |
-| Haushalt  | Partner, Aufteilung und Einstellungen   |
-
-#### Umsetzung
-
-- [ ] Zentrale Bottom-Navigation ergänzen
-- [ ] Plus-Button deutlich hervorheben
-- [ ] Aktiven Bereich sichtbar kennzeichnen
-- [ ] Auf Desktop-Geräten alternative Seitenleiste verwenden
-- [ ] Navigation auf allen Hauptseiten konsistent halten
-
-**Nutzen:** Nutzer müssen nicht überlegen, wo sich Funktionen befinden. Die App wirkt wie eine vollständige Mobile-App statt wie eine mobile Website.
-
----
-
-### 2.3 Schnellerfassung: Ausgabe in wenigen Sekunden speichern
-
-Die häufigste Alltagssituation lautet beispielsweise:
-
-> Ich habe gerade 42,80 € bei Rewe bezahlt.
-
-Dafür sollte der Standardablauf nur aus drei Schritten bestehen:
-
-1. Plus drücken
-2. Betrag eingeben
-3. Speichern
-
-Die App sollte Standardwerte automatisch vorbelegen:
-
-- Zahler: standardmäßig „Ich“
-- Datum: „Heute“
-- Kategorie: zuletzt verwendet oder wahrscheinlichste Kategorie
-- Aufteilung: Haushaltsstandard
-- Kasse: zuletzt genutzte Zahlungsquelle
-
-Unter dem Betragsfeld können Schnellzugriffe erscheinen:
-
-> Lebensmittel · Tanken · Drogerie · Restaurant · Mehr
-
-Zusätzlich sinnvoll:
-
-- „Letzte Ausgabe wiederholen“
-- Snackbar mit **Rückgängig**
-- Option „Noch eine Ausgabe erfassen“
-- Automatischer Fokus auf das Betragsfeld
-- Speichern über die Enter-Taste
-- Frei auswählbares Buchungsdatum für nachträgliche Einträge
-
-#### Umsetzung
-
-- [ ] Minimalformular als Standardansicht bauen
-- [ ] Erweiterte Felder einklappbar machen
-- [ ] Zuletzt verwendete Kategorie merken
-- [ ] Favoriten und Vorlagen ergänzen
-- [ ] Rückgängig-Funktion nach dem Speichern anbieten
-- [ ] Datum nachträglich änderbar machen
-
-**Nutzen:** Die App wird tatsächlich alltagstauglich. Ausgaben lassen sich direkt nach dem Einkauf erfassen, bevor man sie vergisst.
-
----
-
-## 3. Weitere Verbesserungen mit hohem Nutzen
-
-### 3.1 Begriffe vereinfachen und Berechnung sichtbar machen
-
-Die App verwendet fachlich sinnvolle Konzepte:
-
-- Ausgabe
-- Einzahlung
-- Kasse
-- Saldo
-- einkommensbasierter Ausgleich
-- offene Abrechnung
-
-Für Nutzer sollte immer sichtbar sein, was eine Buchung konkret bewirkt.
-
-Beispiel bei einer privaten Zahlung:
-
-> Du hast 60,00 € bezahlt.  
-> Dein Anteil: 30,00 €  
-> Anteil deines Partners: 30,00 €
-
-Beispiel bei Zahlung aus der Haushaltskasse:
-
-> Die Ausgabe wird vollständig von der gemeinsamen Kasse abgezogen.
-
-Unter **Haushalt** sollte eine globale Standardaufteilung hinterlegt werden:
-
-- 50:50
-- nach Nettoeinkommen
-- individueller Prozentsatz
-
-Sonderfälle erscheinen nur hinter:
-
-> Anders aufteilen
-
----
-
-### 3.2 Abrechnung sicherer und verständlicher gestalten
-
-Vor einem Monatsabschluss oder einer Sammelabrechnung sollte ein Bestätigungsdialog erscheinen.
-
-Beispiel:
-
-> **Abrechnung bestätigen**  
-> Dein Partner überweist dir 84,30 €.  
-> Enthalten sind 17 offene Ausgaben.  
-> Zeitraum: 1. bis 8. Juni 2026.
-
-Buttons:
-
-- Abbrechen
-- Abrechnung abschließen
-
-Nach dem Abschluss:
-
-> Abrechnung abgeschlossen · **Rückgängig**
-
-Zusätzlich sinnvoll:
-
-- automatisch erzeugter Verwendungszweck
-- PDF- oder CSV-Export
-- gespeicherter Zeitraum
-- nachvollziehbare Liste der enthaltenen Buchungen
-- Änderungshinweis bei nachträglicher Korrektur
-
-Beispiel für einen Verwendungszweck:
-
-> Haushaltsausgleich Juni 2026
-
----
-
-### 3.3 Verlauf zu einem echten Arbeitsbereich ausbauen
-
-Der Verlauf sollte nicht nur Buchungen anzeigen, sondern auch schnelles Prüfen und Korrigieren ermöglichen.
-
-Sinnvolle Funktionen:
-
-- Monatsauswahl
-- Suche nach Beschreibung oder Händler
-- Filter nach Kategorie
-- Filter nach Zahler
-- Filter nach Zahlungsquelle
-- Tabs: Offen · Abgerechnet · Alle
-- Gruppierung nach Tagen
-- Monatssumme
-- Bearbeiten · Duplizieren · Löschen
-- Rückgängig-Funktion
-
-Beispiel:
-
-> **Heute**  
-> Rewe · Lebensmittel · bezahlt von dir · 42,80 €  
-> Tankstelle · Mobilität · aus Haushaltskasse · 71,20 €
-
-> **Gestern**  
-> Apotheke · Gesundheit · bezahlt vom Partner · 18,40 €
-
----
-
-### 3.4 Fixkosten stärker in die Übersicht integrieren
-
-Auf der Startseite sollte ein kompakter Bereich erscheinen:
-
-> **Demnächst fällig**  
-> 12.06. Strom · 82,00 €  
-> 15.06. Internet · 39,95 €  
-> 18.06. Versicherung · 47,20 €
-
-Fixkosten benötigen einen klaren Status:
-
-- geplant
-- fällig
-- gebucht
-- überfällig
-- pausiert
-
-Bei einer normalen Ausgabe sollte zusätzlich angeboten werden:
-
-> Als monatliche Ausgabe speichern
-
----
-
-### 3.5 Nur wenige aussagekräftige Kennzahlen anzeigen
-
-Viele Finanz-Apps werden unübersichtlich, weil sie zu viele Statistiken anzeigen. Für die Startseite reichen wenige Kennzahlen:
-
-1. Offener Ausgleich
-2. Noch verfügbares Haushaltsbudget
-3. Gemeinsame Kasse
-4. Ausgaben im aktuellen Monat
-5. Nächste Fixkosten
-
-Optional:
-
-> Lebensmittelbudget: 386 € von 600 € verwendet
-
----
-
-### 3.6 Onboarding vereinfachen
-
-Empfohlener Ablauf:
-
-1. Vorname
-2. Haushaltsmodell auswählen: 50:50 oder nach Einkommen
-3. Partner per Link oder E-Mail einladen
-4. Erste Beispielausgabe erfassen
-
-Beim Einkommen sollte eine Erklärung stehen:
-
-> Dein Nettoeinkommen wird ausschließlich verwendet, um euren fairen Kostenanteil zu berechnen. Die Angabe ist optional.
-
-Zusätzlich zur E-Mail-Einladung sollte ein teilbarer Link angeboten werden, beispielsweise für WhatsApp.
-
----
-
-### 3.7 Kleine Details mit großer Wirkung
-
-- [ ] Buttons während des Speicherns deaktivieren
-- [ ] Klickflächen mindestens 44 × 44 Pixel groß gestalten
-- [ ] Sichtbaren Tastaturfokus ergänzen
-- [ ] `aria-label` für reine Icon-Buttons setzen
-- [ ] Auswahl nicht nur durch Farben kennzeichnen
-- [ ] Offline-Status anzeigen: „Synchronisiert“, „Wird synchronisiert“, „Offline gespeichert“
-- [ ] Bei Fehlern konkrete Handlungsoptionen anbieten
-- [ ] Ladezustände mit Skeletons oder Spinnern sichtbar machen
-- [ ] Leere Zustände mit verständlicher Handlungsaufforderung versehen
-- [ ] Formulierungsfehler korrigieren: „Warte auf die Bestätigung deines Partners.“
-
----
-
-## 4. Sinnvolle Erweiterungen nach Mehrwert priorisiert
-
-> [!tip]
-> Die Reihenfolge orientiert sich am tatsächlichen Nutzen für einen gemeinsamen Familienhaushalt, nicht daran, welche Funktion technisch besonders interessant wirkt.
-
-### Priorität A – zuerst umsetzen
-
-#### 4.1 Wiederkehrende Ausgaben automatisch übernehmen
-
-**Nutzen:** sehr hoch  
-**Aufwand:** mittel
-
-Miete, Strom, Internet, Versicherungen, Streaming-Dienste und andere Fixkosten sollten automatisch vorgeschlagen oder gebucht werden können.
-
-Sinnvolle Optionen:
-
-- monatlich, quartalsweise oder jährlich
-- nächstes Fälligkeitsdatum
-- automatische Buchung oder vorherige Bestätigung
-- Hinweis bei Preisänderungen
-- Status: geplant · fällig · gebucht · pausiert
-
-Beispiel:
-
-> Internet · 39,95 €  
-> Wird am 15. Juni automatisch aus der Haushaltskasse gebucht.
-
----
-
-#### 4.2 Verfügbares Monatsbudget anzeigen
-
-**Nutzen:** sehr hoch  
-**Aufwand:** mittel
-
-Berechnung:
-
 ```text
-gemeinsames Monatsbudget
-- Fixkosten
-- bereits gebuchte Ausgaben
-- geplante Rücklagen
-= noch verfügbarer Betrag
+Alles ausgeglichen
 ```
 
-Beispiel:
+Darunter:
 
-> **Noch verfügbar im Juni: 1.126,40 €**  
-> Das entspricht durchschnittlich 49,00 € pro verbleibendem Tag.
+* Gemeinschaftskasse: `126,50 €`
+* Ausgaben diesen Monat: `1.248,20 €`
+* Fixkosten in den nächsten 14 Tagen: `380,00 €`
+* 3 letzte offene Buchungen
 
-Optional:
+Das Einkommen kann weiterhin in den Einstellungen und in einer kleinen Fair-Share-Zusammenfassung stehen. Aktuell nimmt es im Hero-Bereich deutlich mehr Raum ein als der persönliche Saldo. ([GitHub][5])
 
-> Bei eurem aktuellen Ausgabentempo wird das Monatsbudget voraussichtlich am 24. Juni aufgebraucht sein.
+## Startseite vereinfachen
 
----
+Der ursprüngliche Plan sah eine mobile Bottom-Navigation und nur die letzten fünf Transaktionen vor. In der aktuellen Umsetzung liegen Navigationselemente oben und die Liste kann umfangreicher werden. ([GitHub][1])
 
-#### 4.3 Flexible Aufteilung einzelner Ausgaben
+Für die mobile Nutzung wäre besser:
 
-**Nutzen:** sehr hoch  
-**Aufwand:** mittel
+```text
+Übersicht | Verlauf | + | Fixkosten | Profil
+```
 
-Mögliche Varianten:
+Der Plus-Button bleibt mittig und gut mit dem Daumen erreichbar.
 
-- 50:50
-- nach Einkommen
-- vollständig Person A
-- vollständig Person B
-- individuelle Prozentwerte
-- individueller Betrag je Person
+Die Liste auf der Startseite sollte maximal fünf Einträge zeigen und darunter:
 
-Beispiele:
+```text
+Alle Buchungen anzeigen
+```
 
-- gemeinsamer Einkauf: 50:50
-- persönliches Hobby: vollständig eine Person
-- Familienurlaub: nach Einkommen
-- Geschenk für ein Kind: individueller Anteil
+Je nach gewünschter Logik sollte die Überschrift außerdem eindeutig sein:
 
-Die Standardaufteilung bleibt vorausgewählt. Sonderfälle werden nur bei Bedarf über **Anders aufteilen** geöffnet.
+* **Letzte Buchungen**, wenn auch abgerechnete Ausgaben erscheinen
+* **Offene Buchungen**, wenn nur noch nicht abgerechnete Positionen erscheinen
 
 ---
 
-#### 4.4 Nachvollziehbarer Monatsabschluss
+# 5. Abrechnung verständlicher machen
 
-**Nutzen:** sehr hoch  
-**Aufwand:** gering bis mittel
+Momentan kann die Abrechnung recht direkt ausgelöst werden. Für Finanzdaten ist ein kurzer Bestätigungsdialog sinnvoll. ([GitHub][6])
 
-Vor dem Abschluss:
+## Empfohlene Abrechnungsvorschau
 
-> **Abrechnung Juni 2026**  
-> Viktor bekommt 84,30 € zurück.  
-> Enthalten sind 24 offene Buchungen.
+```text
+Abrechnung Juni 2026
 
-Nach dem Abschluss:
+Anna überweist Viktor: 84,30 €
 
-- Zeitraum speichern
-- beteiligte Buchungen markieren
-- Überweisungsbetrag anzeigen
-- Verwendungszweck erzeugen
-- PDF- oder CSV-Export
-- Rückgängig-Funktion
+Berechnung:
+• Gemeinsame Ausgaben: 1.280,00 €
+• Von Viktor bezahlt: 724,30 €
+• Von Anna bezahlt: 555,70 €
+• Aufteilung: 50/50
 
----
+[Abbrechen]   [Als bezahlt markieren]
+```
 
-#### 4.5 Persönliche und gemeinsame Ausgaben unterscheiden
+Bei einkommensabhängiger Aufteilung:
 
-**Nutzen:** hoch  
-**Aufwand:** mittel
+```text
+Aufteilung: 60 % / 40 %
+Gültig seit: 1. Juni 2026
+```
 
-Mögliche Buchungsarten:
+## Eine Abrechnung sollte dauerhaft speichern
 
-- gemeinsame Ausgabe
-- persönliche Ausgabe
-- Ausgabe für ein Kind
-- Erstattung oder Rückzahlung
+* Zeitraum oder Stichtag
+* Betrag
+* zahlende Person
+* empfangende Person
+* verwendeter Aufteilungsmodus
+* verwendetes Verhältnis
+* Status: `offen`, `bezahlt`, `storniert`
+* optionale Notiz
+* enthaltene Buchungen
+* Erstellungsdatum und Änderungsdatum
 
-Beispiel:
+Das bestehende Settlement-Modell enthält bereits Basisfelder, sollte aber um Richtung, Status und Berechnungsgrundlage erweitert werden. ([GitHub][7])
 
-> Fitnessstudio · 34,90 €  
-> Persönliche Ausgabe · wird nicht geteilt.
+## Verlauf besser strukturieren
 
----
+Statt einer langen Liste:
 
-#### 4.6 Schnellerfassung mit Favoriten und Vorlagen
+```text
+Juni 2026
+  Offene Ausgaben
+  Abrechnung vom 30.06.2026
+    18 Buchungen · Anna → Viktor · 84,30 €
 
-**Nutzen:** hoch  
-**Aufwand:** gering bis mittel
-
-Beispiele für Favoriten:
-
-- Rewe · Lebensmittel · bezahlt von mir
-- Tanken · Mobilität · bezahlt von mir
-- Kita · Kinder · aus Haushaltskasse
-- Bäcker · Lebensmittel · bezahlt vom Partner
+Mai 2026
+  Abrechnung vom 31.05.2026
+    22 Buchungen · Viktor → Anna · 42,80 €
+```
 
 Zusätzlich sinnvoll:
 
-- letzte Ausgabe wiederholen
-- zuletzt verwendete Kategorien zuerst anzeigen
-- häufige Händler vorschlagen
-- Standardzahler merken
-- Betrag nachträglich anpassen
+* Monatsfilter
+* Suche in Notizen
+* Filter nach Kategorie
+* Filter nach Zahler
+* nur offene Buchungen
+* Gemeinschaftskasse separat
+* Abrechnung aufklappen
+* Abrechnungsübersicht kopieren oder teilen
+* CSV-Export
 
 ---
 
-#### 4.7 Nachträgliche Buchungen und Korrekturen
+# 6. Fixkosten statt „Abos“
 
-**Nutzen:** hoch  
-**Aufwand:** gering
+Die App verwendet an mehreren Stellen den Begriff „Abos“, obwohl die Beispiele auch Miete, Versicherung und Internet enthalten. ([GitHub][8])
 
-Sinnvolle Funktionen:
+Besser:
 
-- Buchungsdatum frei wählen
-- Buchung bearbeiten
-- Buchung duplizieren
-- Buchung löschen
-- Rückgängig-Funktion
-- Änderungshistorie bei abgerechneten Buchungen
-- Hinweis auf Auswirkungen für den Ausgleich
+```text
+Fixkosten
+```
 
-Beispiel:
+oder:
 
-> Die Änderung erhöht deinen Erstattungsanspruch um 12,50 €.
+```text
+Wiederkehrend
+```
 
----
+Innerhalb eines Eintrags kann optional ein Typ gewählt werden:
 
-### Priorität B – danach ergänzen
+* Miete
+* Vertrag
+* Abo
+* Versicherung
+* Kredit
+* Sonstiges
 
-#### 4.8 Budgets für wichtige Kategorien
+## Fixkosten-Seite verbessern
 
-**Nutzen:** hoch  
-**Aufwand:** mittel
+Jede Karte sollte vorrangig zeigen:
 
-Mögliche Kategorien:
+```text
+Miete
+1.200,00 € · monatlich
+Nächste Buchung: 01.07.2026
+Bezahlt von Viktor · 50/50
+```
 
-- Lebensmittel
-- Restaurant und Lieferdienste
-- Mobilität
-- Freizeit
-- Kinder
-- Urlaub
-- Drogerie
-- Haushalt
+Die zuletzt erzeugte Buchung ist technisch nützlich, aber für den Nutzer ist die **nächste Fälligkeit** meist wichtiger.
 
-Beispiel:
+Zusätzliche Komfortfunktionen:
 
-> Lebensmittel  
-> 386 € von 600 € verwendet  
-> Noch verfügbar: 214 €
+* „einmal überspringen“
+* pausieren bis zu einem Datum
+* Änderung erst ab nächster Fälligkeit
+* Enddatum
+* letzter Kalendertag des Monats
+* Übersicht: Fixkosten pro Monat
+* Übersicht: fällig in den nächsten 30 Tagen
+* Vorschlag: „Diese Ausgabe kommt häufig vor. Als Fixkosten speichern?“
 
-Warnung:
+## Sonderfall Monatsende
 
-> Ihr habt bereits 85 % eures Restaurantbudgets verwendet.
+Bei einem gewünschten Buchungstag 29, 30 oder 31 muss die App sauber mit Februar und kürzeren Monaten umgehen. Die aktuelle Datumserzeugung arbeitet mit `setUTCDate`, wodurch ungültige Datumswerte in den Folgemonat überlaufen können. ([GitHub][9])
 
----
+Sinnvolle Auswahl:
 
-#### 4.9 Sparziele und Rücklagen
+```text
+Tag 31 beziehungsweise letzter Kalendertag
+```
 
-**Nutzen:** hoch  
-**Aufwand:** mittel
-
-Beispiel:
-
-> **Urlaub 2026**  
-> Ziel: 2.400 €  
-> Bereits zurückgelegt: 1.350 €  
-> Empfohlene monatliche Einzahlung: 175 €
-
-Sinnvolle Funktionen:
-
-- Zielbetrag
-- Wunschdatum
-- monatlicher Sparbetrag
-- Fortschrittsanzeige
-- Einzahlungen dokumentieren
-- Rücklagen vom frei verfügbaren Monatsbudget abziehen
+Dazu automatisierte Tests für Februar, Schaltjahre sowie Monate mit 30 und 31 Tagen.
 
 ---
 
-#### 4.10 Benachrichtigungen und Erinnerungen
+# 7. Gemeinschaftskasse praxisnah gestalten
 
-**Nutzen:** mittel bis hoch  
-**Aufwand:** mittel
+Die Gemeinschaftskasse ist bereits vorhanden und sollte zu einem echten Alltagstool werden. ([GitHub][2])
 
-Sinnvolle Benachrichtigungen:
+Besonders sinnvoll:
 
-- Partner hat eine größere Ausgabe eingetragen
-- Fixkosten werden morgen fällig
-- Monatsbudget ist fast ausgeschöpft
-- offene Abrechnung besteht seit mehreren Tagen
-- Partner hat eine Abrechnung bestätigt
-- Rücklage wurde diesen Monat noch nicht eingezahlt
+### Kassensturz
 
-Jeder Benachrichtigungstyp sollte einzeln deaktivierbar sein.
+```text
+Erwarteter Kassenstand: 126,50 €
+Tatsächlich vorhanden: 121,50 €
+Differenz: -5,00 €
 
----
+[Korrekturbuchung erstellen]
+```
 
-#### 4.11 Erstattungen, Rückzahlungen und Gutschriften
+### Warnung statt Blockade
 
-**Nutzen:** mittel  
-**Aufwand:** mittel
+Wenn eine Barausgabe den Kassenstand negativ machen würde:
 
-Mögliche Buchungsarten:
+```text
+Die Gemeinschaftskasse wäre danach 14,20 € im Minus.
+Trotzdem buchen?
+```
 
-- Ausgabe
-- Einzahlung in die gemeinsame Kasse
-- Erstattung
-- Gutschrift
-- Rückzahlung
-- Einnahme
+Nicht hart blockieren, da manchmal eine Einzahlung vergessen wurde.
 
-Beispiele:
+### Eigene Kassenansicht
 
-- Pfandrückgabe
-- Stromgutschrift
-- Rücksendung eines Artikels
-- Versicherungserstattung
-- private Einzahlung in die Haushaltskasse
+* Einzahlungen
+* Barausgaben
+* Korrekturen
+* aktueller Sollstand
+* letzter Kassensturz
+* Filter nur Gemeinschaftskasse
 
 ---
 
-#### 4.12 Datenexport und Datensicherung
+# 8. Offline-first konsequent fertigstellen
 
-**Nutzen:** mittel  
-**Aufwand:** gering bis mittel
+Im Konzept ist Offline-first ausdrücklich vorgesehen. Die PWA-Konfiguration cached bereits API-Antworten mit einer Network-First-Strategie. In dem sichtbaren Code erkenne ich jedoch noch keine belastbare Warteschlange für neu erfasste oder geänderte Buchungen. ([GitHub][1])
 
-Formate:
+Für eine Heimfinanz-App ist gerade der Supermarkt ein typischer Ort mit instabilem Empfang. Eine Ausgabe darf dann nicht verloren gehen.
 
-- CSV für Excel
-- PDF für Monatsabrechnungen
-- vollständiges Backup als JSON
-- optionaler Jahresbericht
+## Empfohlenes Verhalten
 
-Filter:
+```text
+24,80 € Lebensmittel
+Offline gespeichert
+Wird automatisch synchronisiert, sobald eine Verbindung besteht.
+```
 
-- Zeitraum
-- Kategorie
-- Person
-- offene oder abgeschlossene Buchungen
+Technisch:
 
----
+* POST-, PUT- und DELETE-Anfragen lokal in IndexedDB puffern
+* jede Buchung mit clientseitiger UUID versehen
+* Wiederholungen idempotent behandeln
+* Synchronisationsstatus anzeigen
+* Konflikte sichtbar machen
+* bei Abrechnung keine automatische Konfliktauflösung verwenden
 
-#### 4.13 Kinderbezogene Kosten separat auswerten
+Workbox bietet für fehlgeschlagene Requests eine Background-Sync-Funktion, die Anfragen lokal speichert und später erneut ausführt. ([Chrome for Developers][10])
 
-**Nutzen:** mittel  
-**Aufwand:** gering bis mittel
+In der Navigation genügt ein kleiner Status:
 
-Mögliche Unterkategorien:
+```text
+● synchronisiert
+```
 
-- Betreuung und Kita
-- Schule
-- Kleidung
-- Freizeit
-- Gesundheit
-- Taschengeld
-- Vereinsbeiträge
+oder:
 
-Beispiel:
+```text
+● 2 Buchungen warten auf Synchronisierung
+```
 
-> Ausgaben für Kinder im Juni: 438,20 €
-
----
-
-### Priorität C – später prüfen
-
-#### 4.14 Belege und Fotos anhängen
-
-**Nutzen:** mittel  
-**Aufwand:** mittel
-
-Anwendungsfälle:
-
-- Kassenbon
-- Handwerkerrechnung
-- Garantiebeleg
-- Nebenkostenabrechnung
-- größere Anschaffung
-- Versicherungserstattung
-
-Später optional:
-
-- Texterkennung
-- Händlererkennung
-- Betragserkennung
-- Datumserkennung
-- automatische Kategorie-Vorschläge
+Beim Logout sollten nutzerbezogene Caches und wartende lokale Daten sorgfältig behandelt werden, damit auf einem gemeinsam verwendeten Gerät keine alten Finanzdaten sichtbar bleiben.
 
 ---
 
-#### 4.15 CSV- oder Bankimport
+# 9. Monatsübersicht: gute Basis, nur gezielt erweitern
 
-**Nutzen:** mittel  
-**Aufwand:** hoch
+Die Monatsstatistik ist bereits sinnvoll umgesetzt: Monat wechseln, Gesamtausgaben anzeigen und Kategorien visuell aufschlüsseln. ([GitHub][11])
 
-Empfohlene Reihenfolge:
+Für private Nutzung reichen wenige Ergänzungen:
 
-1. CSV-Import aus Online-Banking
-2. Vorschläge zur Kategorisierung
-3. Erkennung möglicher Dubletten
-4. Bestätigung vor der Übernahme
-5. später optional PSD2- oder Banking-Anbindung über einen spezialisierten Dienstleister
+* Vergleich zum Vormonat: `+84,20 €` oder `+7 %`
+* Tap auf Kategorie öffnet gefilterten Verlauf
+* Aufteilung in Fixkosten und variable Ausgaben
+* optional: Gemeinschaftskasse ein- oder ausblenden
+* optional später: einfaches Kategorienlimit
 
-Beispiel:
-
-> 12 neue Kontobewegungen erkannt.  
-> 9 Kategorien wurden automatisch vorgeschlagen.
+Keine aufwendigen Diagrammwelten erforderlich. Ein verständlicher Monatsvergleich bringt mehr Nutzen als zehn verschiedene Charts.
 
 ---
 
-#### 4.16 Mehrere Haushaltskassen oder Unterkonten
+# 10. Profil und Onboarding verbessern
 
-**Nutzen:** später sinnvoll  
-**Aufwand:** mittel bis hoch
+Das Onboarding enthält bereits Profil, optionales Einkommen und Partner-Einladung. Das ist eine gute Grundlage. ([GitHub][12])
 
-Mögliche Kassen:
+Direkt nach der Partner-Verknüpfung sollte eine klare Frage erscheinen:
 
-- laufender Haushalt
-- Urlaub
-- Kinder
-- Auto
-- Renovierung
-- gemeinsame Anschaffungen
+```text
+Wie möchtet ihr gemeinsame Ausgaben aufteilen?
 
-Beispiel:
+○ Gleichmäßig 50/50
+○ Nach Nettoeinkommen
+○ Später festlegen
+```
 
-> Haushaltskasse: 430 €  
-> Urlaubskasse: 1.350 €  
-> Rücklage Auto: 780 €
+Danach eine Mini-Einführung:
 
----
+```text
+1. Plus drücken
+2. Betrag und Kategorie wählen
+3. Bei Bedarf monatlich abrechnen
+```
 
-#### 4.17 Rollen für weitere Familienmitglieder
+## Profil sinnvoll ergänzen
 
-**Nutzen:** optional  
-**Aufwand:** hoch
+Unter **Haushalt und Daten**:
 
-Mögliche Rollen:
+* Aufteilungsmodus
+* Verhältnis und Gültigkeitsdatum
+* Partner
+* Export als CSV
+* Export als JSON
+* Synchronisationsstatus
+* letzte erfolgreiche Datensicherung
+* Daten vollständig löschen
+* App-Version
 
-- Administrator
-- vollwertiges Haushaltsmitglied
-- nur lesen
-- eingeschränkte Erfassung
-- keine Einsicht in persönliche Ausgaben
-
-Für die erste Version sollte die App jedoch konsequent auf zwei Partner optimiert bleiben.
-
----
-
-## 5. Empfohlene Umsetzungsreihenfolge
-
-### Phase 1 – sofort spürbare Verbesserung
-
-- [ ] Hero-Card auf offenen Ausgleich umstellen
-- [ ] Bottom-Navigation einführen
-- [ ] Schnellerfassung vereinfachen
-- [ ] sinnvolle Standardwerte setzen
-- [ ] Rückgängig-Funktion nach Speichern und Löschen
-- [ ] Bestätigungsdialog vor Abrechnung
-- [ ] Buchungsdatum frei wählbar machen
-- [ ] Formulierungsfehler korrigieren
-- [ ] Offline- und Ladezustände sichtbar machen
-
-### Phase 2 – bessere Übersicht
-
-- [ ] Verlauf mit Suche und Filtern
-- [ ] Fixkosten auf der Startseite
-- [ ] wiederkehrende Ausgaben automatisch übernehmen
-- [ ] verfügbares Monatsbudget anzeigen
-- [ ] persönliche und gemeinsame Ausgaben unterscheiden
-- [ ] flexible Aufteilung einzelner Buchungen
-- [ ] Favoriten und Vorlagen
-- [ ] Einladungslink für Partner
-
-### Phase 3 – Familienfinanzen aktiv planen
-
-- [ ] Kategorie-Budgets
-- [ ] Sparziele und Rücklagen
-- [ ] Benachrichtigungen
-- [ ] Erstattungen und Gutschriften
-- [ ] Monatsabschluss exportieren
-- [ ] Kinderkosten separat auswerten
-
-### Phase 4 – Komfortfunktionen und Skalierung
-
-- [ ] Belegscan
-- [ ] CSV-Import
-- [ ] später mögliche Banking-Anbindung
-- [ ] mehrere Haushaltskassen
-- [ ] zusätzliche Nutzerrollen
+Die vorhandene Profilseite zeigt bereits Einkommen, Aufteilungsverhältnis und Partnerschaftsinformationen. ([GitHub][13])
 
 ---
 
-## 6. Abnahmekriterien für eine spürbar bessere Bedienbarkeit
+# 11. Funktionen nach Nutzen priorisieren
 
-### Startseite
+## Als Nächstes sinnvoll
 
-- [ ] Nutzer erkennen innerhalb von 3 Sekunden, wer wem Geld schuldet
-- [ ] Noch verfügbares Monatsbudget ist direkt sichtbar
-- [ ] Nächste Fixkosten sind ohne Navigation erkennbar
-- [ ] Wichtigste Kennzahl ist nicht das Einkommen, sondern die Handlungsempfehlung
+| Funktion                       | Begründung                                      |
+| ------------------------------ | ----------------------------------------------- |
+| Einheitlicher Abrechnungsmodus | Verhindert widersprüchliche Beträge.            |
+| Atomare Abrechnung             | Verhindert teilweise gespeicherte Abrechnungen. |
+| Idempotente Fixkosten          | Verhindert Dubletten.                           |
+| Undo nach Buchung              | Spart viele Korrekturschritte.                  |
+| Letzte Buchung wiederholen     | Sehr hoher Alltagsnutzen bei wenig Komplexität. |
+| Offline-Warteschlange          | Verhindert verlorene Eingaben.                  |
+| Abrechnungsvorschau            | Schafft Vertrauen und Nachvollziehbarkeit.      |
+| CSV- und JSON-Export           | Wichtig für Sicherheit und spätere Auswertung.  |
+| Kassensturz                    | Macht die Gemeinschaftskasse praktisch nutzbar. |
+| Monatsgruppen im Verlauf       | Reduziert visuelle Unruhe.                      |
 
-### Neue Ausgabe
+## Später nur bei echtem Bedarf
 
-- [ ] Standardausgabe lässt sich in maximal 3 Interaktionen speichern
-- [ ] Standardwerte sind sinnvoll vorbelegt
-- [ ] Buchung kann nach dem Speichern rückgängig gemacht werden
-- [ ] Sonderfälle bleiben erreichbar, überladen aber nicht die Standardansicht
+| Funktion            | Wann sie sinnvoll wird                                       |
+| ------------------- | ------------------------------------------------------------ |
+| Belegfoto           | Wenn Belege häufig gesucht oder diskutiert werden.           |
+| OCR-Erkennung       | Wenn das manuelle Erfassen tatsächlich lästig wird.          |
+| Kategorienbudgets   | Nach einigen Monaten realer Nutzung.                         |
+| Sparziele           | Wenn die App nicht nur abrechnen, sondern planen soll.       |
+| Haushaltskalender   | Falls Fälligkeiten und Verträge wichtiger werden.            |
+| Push-Erinnerungen   | Für offene Abrechnung oder fällige Fixkosten.                |
+| Biometrische Sperre | Wenn die App auf gemeinsam genutzten Geräten verwendet wird. |
 
-### Verlauf
+## Vorerst bewusst nicht bauen
 
-- [ ] Nutzer können Buchungen suchen
-- [ ] Nutzer können nach Monat, Kategorie und Zahler filtern
-- [ ] Buchungen lassen sich bearbeiten, duplizieren und löschen
-- [ ] Offene und abgerechnete Buchungen sind klar unterscheidbar
+* Bank-Synchronisierung
+* vollständige Buchhaltungslogik
+* komplexes Vertragsmanagement
+* Multi-Haushalt-Verwaltung
+* Rollen- und Rechtesystem für viele Personen
+* KI-Kategorisierung
+* umfangreiche Budgetplanung
+* SaaS-Adminbereich
+
+Bank-Synchronisierung und OCR stehen bereits als spätere Ideen im Plan. Für die private Nutzung würden sie aktuell deutlich mehr technische Komplexität als unmittelbaren Nutzen erzeugen. ([GitHub][1])
+
+---
+
+# 12. Technische Qualität und Datenschutz
+
+## Tests ergänzen
+
+Die vorhandene CI führt Installation, Linting, Typprüfung und Build aus. Ein Testskript ist in den sichtbaren Projektdateien noch nicht enthalten. ([GitHub][14])
+
+Für diese App sind keine hunderte Tests nötig. Wenige gezielte Tests schützen bereits die wichtigsten Daten:
+
+### Berechnungen
+
+* Ausgabe 10,00 € bei 50/50
+* Ausgabe 9,99 € bei 50/50
+* Einkommen 60/40
+* Gemeinschaftskasse
+* Einzahlung
+* Korrekturbuchung
+* individuelle Aufteilung
+* Änderung des Einkommens ab einem Stichtag
+
+### Fixkosten
+
+* Februar
+* Schaltjahr
+* Tag 29, 30 und 31
+* letzter Kalendertag
+* zwei Geräte erzeugen dieselbe Fälligkeit
+* pausierte Regel
+* einmal übersprungene Regel
 
 ### Abrechnung
 
-- [ ] Betrag, Richtung und Zeitraum sind vor Abschluss eindeutig sichtbar
-- [ ] Enthaltene Buchungen sind nachvollziehbar
-- [ ] Abrechnung kann exportiert werden
-- [ ] Fehlbedienung lässt sich unmittelbar rückgängig machen
+* alle Buchungen erfolgreich
+* eine Aktualisierung schlägt fehl
+* erneutes Absenden derselben Abrechnung
+* Offline-Zustand
+* Abrechnung mit bereits enthaltenen Buchungen
 
-### Mobile Bedienung
+## Backup unbedingt einrichten
 
-- [ ] Hauptnavigation ist mit dem Daumen gut erreichbar
-- [ ] Klickflächen sind mindestens 44 × 44 Pixel groß
-- [ ] Plus-Button ist von jeder Hauptseite erreichbar
-- [ ] Layout funktioniert auf kleinen Smartphones ohne horizontales Scrollen
+Bei privaten Finanzdaten ist ein funktionierendes Backup wichtiger als viele Komfortfunktionen. PocketBase unterstützt integrierte Backups und Wiederherstellung sowie externe S3-kompatible Speicher. Die Dokumentation empfiehlt für externe Backups einen getrennten Bucket. ([pocketbase.io][15])
+
+Pragmatische Lösung:
+
+* nächtliches Backup
+* Kopie außerhalb des Servers
+* monatlicher Restore-Test
+* zusätzlicher manueller CSV- und JSON-Export in der App
+
+## Öffentliches Repository prüfen
+
+Das Repository ist derzeit öffentlich sichtbar. Außerdem ist die PocketBase-Adresse in der Frontend-Konfiguration enthalten. ([GitHub][16])
+
+Die Backend-Adresse im Frontend ist bei einer clientseitigen PocketBase-App nicht automatisch ein Geheimnis. PocketBase ist für direkte Client-Zugriffe ausgelegt; die Sicherheit muss über Authentifizierung und Collection-Regeln gewährleistet werden. ([pocketbase.io][17])
+
+Für eine vorerst rein private App würde ich dennoch:
+
+* das Repository privat stellen, sofern Open Source nicht beabsichtigt ist,
+* keine echten Nutzerdaten oder Secrets einchecken,
+* Collection-Regeln erneut prüfen,
+* Änderungen und Löschungen protokollieren,
+* Buchungen eher „stornieren“ als endgültig löschen,
+* serverseitige Backups einrichten.
+
+## README ersetzen
+
+Das aktuelle README entspricht noch weitgehend der Standardvorlage von SvelteKit. ([GitHub][16])
+
+Ein kurzes internes README sollte enthalten:
+
+* Zweck der App
+* lokale Installation
+* Deployment
+* Umgebungsvariablen
+* PocketBase-Schema aktualisieren
+* Backup und Restore
+* Berechnungsregeln
+* Offline-Verhalten
+* Testfälle
+* bekannte Einschränkungen
 
 ---
 
-## 7. Grundsätze für die Weiterentwicklung
+# 13. Kleine Sofortverbesserungen
 
-Jede neue Funktion sollte mindestens eine dieser Fragen klar mit **Ja** beantworten:
+Ein paar Änderungen benötigen kaum Aufwand, verbessern aber den Eindruck spürbar:
 
-- Spart sie regelmäßig Zeit?
-- Verhindert sie Missverständnisse zwischen Partnern?
-- Verbessert sie eine finanzielle Entscheidung?
-- Macht sie eine Abrechnung nachvollziehbarer?
-- Reduziert sie manuelle Eingaben?
-- Erhöht sie die Wahrscheinlichkeit, dass die App täglich genutzt wird?
+* Tippfehler korrigieren:
+  `Werte auf Bestätigung von deines Partners.`
+  → `Warte auf die Bestätigung deines Partners.`
+* „Abos“ überall durch „Fixkosten“ ersetzen
+* offene Buchungen auf der Startseite auf fünf begrenzen
+* leere Zustände freundlicher formulieren:
 
-> [!warning]
-> Erfüllt eine Erweiterung keinen dieser Punkte, sollte sie zunächst zurückgestellt werden.  
-> Eine übersichtliche App mit wenigen sehr guten Funktionen ist für Familien wertvoller als eine komplexe Finanzsoftware mit vielen selten genutzten Optionen.
-
----
-
-## 8. Referenzen zum Projekt
-
-### Repository
-
-- [Godsizee/Finanzen auf GitHub](https://github.com/Godsizee/Finanzen)
-
-### Relevante Dateien
-
-- [Implementation Plan](https://github.com/Godsizee/Finanzen/blob/master/implementation_plan.md)
-- [Dashboard](https://github.com/Godsizee/Finanzen/blob/master/src/routes/%2Bpage.svelte)
-- [Hero Card](https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/transactions/components/HeroCard.svelte)
-- [Neue Ausgabe](https://github.com/Godsizee/Finanzen/blob/master/src/routes/add/%2Bpage.svelte)
-- [Verlauf](https://github.com/Godsizee/Finanzen/blob/master/src/routes/history/%2Bpage.svelte)
-- [Fixkosten](https://github.com/Godsizee/Finanzen/blob/master/src/routes/recurring/%2Bpage.svelte)
-- [Monatsstatistik](https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/transactions/components/MonthlyStats.svelte)
-- [Onboarding](https://github.com/Godsizee/Finanzen/blob/master/src/routes/onboarding/%2Bpage.svelte)
+  ```text
+  Noch keine Ausgaben vorhanden.
+  Erfasse deine erste Ausgabe über das Plus.
+  ```
+* Speichern-Schaltfläche bei ungültigem Betrag deaktivieren
+* bei Ladezuständen Skeletons statt springender Inhalte anzeigen
+* nach Partner-Verknüpfung sofort den Aufteilungsmodus auswählen
+* beim Löschen immer Undo oder Bestätigung anbieten
+* bei bearbeiteten Buchungen „zuletzt geändert“ anzeigen
 
 ---
 
-## Kurzfazit
+# Empfohlene Reihenfolge
 
-Die App sollte zuerst in drei Bereichen verbessert werden:
+## Phase A: Finanzdaten absichern
 
-1. **Sofort verständliche Startseite**
-2. **Extrem schnelle Erfassung neuer Ausgaben**
-3. **Nachvollziehbare und sichere Abrechnung**
+* zentralen Abrechnungsmodus einführen
+* Berechnungslogik vereinheitlichen
+* benutzerdefinierte Splits vervollständigen oder ausblenden
+* atomare Abrechnung implementieren
+* Fixkosten idempotent erzeugen
+* Betragsvalidierung zentralisieren
+* Tests für Kernlogik ergänzen
 
-Danach sind automatische Fixkosten, verfügbares Monatsbudget und flexible Aufteilungen die sinnvollsten Erweiterungen. Erst wenn diese Grundlage stabil ist, lohnen sich Komfortfunktionen wie Belegscan, Banking-Import oder zusätzliche Haushaltsrollen.
+## Phase B: Alltag beschleunigen
+
+* Erfassungsmaske reduzieren
+* Favoriten und zuletzt verwendete Kategorien
+* Undo
+* Buchung duplizieren
+* letzte Buchung wiederholen
+* Bottom-Navigation
+* maximal fünf Buchungen auf der Startseite
+
+## Phase C: Komfort und Sicherheit
+
+* Offline-Warteschlange
+* CSV- und JSON-Export
+* Kassensturz
+* Monatsgruppen im Verlauf
+* Backup-Anzeige
+* Fixkosten-Vorschau
+* Vormonatsvergleich
+
+Der sinnvollste nächste Schritt wäre ein GitHub-Issue-Backlog mit P0-, P1- und P2-Tickets sowie klaren Akzeptanzkriterien pro Änderung.
+
+[1]: https://github.com/Godsizee/Finanzen/blob/master/implementation_plan.md "Finanzen/implementation_plan.md at master · Godsizee/Finanzen · GitHub"
+[2]: https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/transactions/store.svelte.ts "Finanzen/src/lib/features/transactions/store.svelte.ts at master · Godsizee/Finanzen · GitHub"
+[3]: https://pocketbase.io/docs/how-to-use/?utm_source=chatgpt.com "Introduction - How to use PocketBase - Docs"
+[4]: https://github.com/Godsizee/Finanzen/blob/master/src/routes/add/%2Bpage.svelte "Finanzen/src/routes/add/+page.svelte at master · Godsizee/Finanzen · GitHub"
+[5]: https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/transactions/components/HeroCard.svelte "Finanzen/src/lib/features/transactions/components/HeroCard.svelte at master · Godsizee/Finanzen · GitHub"
+[6]: https://github.com/Godsizee/Finanzen/blob/master/src/routes/history/%2Bpage.svelte "Finanzen/src/routes/history/+page.svelte at master · Godsizee/Finanzen · GitHub"
+[7]: https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/settlements/api.ts "Finanzen/src/lib/features/settlements/api.ts at master · Godsizee/Finanzen · GitHub"
+[8]: https://github.com/Godsizee/Finanzen/blob/master/src/routes/recurring/%2Bpage.svelte "Finanzen/src/routes/recurring/+page.svelte at master · Godsizee/Finanzen · GitHub"
+[9]: https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/recurring/store.svelte.ts "Finanzen/src/lib/features/recurring/store.svelte.ts at master · Godsizee/Finanzen · GitHub"
+[10]: https://developer.chrome.com/docs/workbox/modules/workbox-background-sync?utm_source=chatgpt.com "workbox-background-sync | Modules - Chrome for Developers"
+[11]: https://github.com/Godsizee/Finanzen/blob/master/src/lib/features/transactions/components/MonthlyStats.svelte "Finanzen/src/lib/features/transactions/components/MonthlyStats.svelte at master · Godsizee/Finanzen · GitHub"
+[12]: https://github.com/Godsizee/Finanzen/blob/master/src/routes/onboarding/%2Bpage.svelte "Finanzen/src/routes/onboarding/+page.svelte at master · Godsizee/Finanzen · GitHub"
+[13]: https://github.com/Godsizee/Finanzen/blob/master/src/routes/profile/%2Bpage.svelte "Finanzen/src/routes/profile/+page.svelte at master · Godsizee/Finanzen · GitHub"
+[14]: https://github.com/Godsizee/Finanzen/blob/master/package.json "Finanzen/package.json at master · Godsizee/Finanzen · GitHub"
+[15]: https://pocketbase.io/docs/going-to-production/?utm_source=chatgpt.com "Going to production - Docs"
+[16]: https://github.com/Godsizee/Finanzen "GitHub - Godsizee/Finanzen · GitHub"
+[17]: https://pocketbase.io/docs/api-rules-and-filters/?utm_source=chatgpt.com "Introduction - API rules and filters - Docs"

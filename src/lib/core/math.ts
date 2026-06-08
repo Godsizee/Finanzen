@@ -21,34 +21,106 @@ export function formatCurrency(cents: number): string {
 	}).format(cents / 100);
 }
 
+export interface TransactionLike {
+	total_amount: number;
+	paid_by: string;
+	split_mode: string;
+	metadata?: any;
+}
+
 /**
- * Calculates the balance for a specific user based on a transaction.
- * Positive balance means the user is owed money (Guthaben).
- * Negative balance means the user owes money (Schulden).
- *
- * @param totalAmount Total transaction amount in cents
- * @param userPaidAmount The amount the user actually paid in cents
- * @param splitMode "50_50" or "custom" (custom not fully implemented here yet)
+ * Calculates my share for a transaction.
  */
-export function calculateBalance(
+export function getTransactionShare(
 	totalAmount: number,
-	splitMode: string = '50_50',
-	didIPay: boolean
+	splitMode: string,
+	paidBy: string,
+	myId: string,
+	partnerId: string | undefined,
+	myRatio: number, // between 0 and 1
+	metadata?: any
 ): number {
 	if (splitMode === 'kasse') {
-		return 0; // Kasse beeinflusst nicht das Schulden-Konto zwischen den Usern
+		return 0;
 	}
 
-	const share = Math.round(totalAmount / 2);
-
-	if (splitMode === 'deposit') {
-		// Einzahlung in die Kasse (Ich habe Geld aus MEINER Tasche in die gemeinsame Kasse gelegt)
-		// -> Partner schuldet mir 50% der Einzahlung
-		return didIPay ? share : -share;
+	if (splitMode === 'me') {
+		return totalAmount;
+	}
+	if (splitMode === 'partner') {
+		return 0;
 	}
 
-	// Normale Ausgabe (50_50):
-	// Ich zahle 100€ (didIPay=true). Mein Share ist 50€. Partner schuldet mir 50€. Balance = +50.
-	// Partner zahlt 100€ (didIPay=false). Mein Share ist 50€. Ich schulde Partner 50€. Balance = -50.
-	return didIPay ? share : -share;
+	if (splitMode === 'custom' && metadata) {
+		try {
+			const meta = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+			if (meta?.split_cents && meta.split_cents[myId] !== undefined) {
+				return meta.split_cents[myId];
+			} else if (meta?.split_percent && meta.split_percent[myId] !== undefined) {
+				return Math.round(totalAmount * (meta.split_percent[myId] / 100));
+			}
+		} catch (e) {
+			console.error('Error parsing custom split metadata', e);
+		}
+	}
+
+	if (splitMode === 'income_ratio' || splitMode === 'fair') {
+		if (metadata) {
+			try {
+				const meta = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
+				if (meta?.split_percent && meta.split_percent[myId] !== undefined) {
+					return Math.round(totalAmount * (meta.split_percent[myId] / 100));
+				}
+			} catch (e) {
+				// fallback
+			}
+		}
+		return Math.round(totalAmount * myRatio);
+	}
+
+	return Math.round(totalAmount / 2);
 }
+
+/**
+ * Calculates the balance change for the current user for a single transaction.
+ */
+export function calculateTransactionBalanceChange(
+	tx: TransactionLike,
+	myId: string,
+	partnerId: string | undefined,
+	myRatio: number
+): number {
+	const myShare = getTransactionShare(
+		tx.total_amount,
+		tx.split_mode,
+		tx.paid_by,
+		myId,
+		partnerId,
+		myRatio,
+		tx.metadata
+	);
+	const myContribution = tx.paid_by === myId ? tx.total_amount : 0;
+	return myContribution - myShare;
+}
+
+/**
+ * Generates a deterministic 15-character lowercase alphanumeric ID from ruleId and dueDate.
+ */
+export function generateDeterministicId(ruleId: string, dateStr: string): string {
+	const input = `${ruleId}_${dateStr.slice(0, 10)}`;
+	let hash = 0;
+	for (let i = 0; i < input.length; i++) {
+		const char = input.charCodeAt(i);
+		hash = (hash << 5) - hash + char;
+		hash = hash & hash;
+	}
+	const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+	let result = '';
+	let seed = Math.abs(hash);
+	for (let i = 0; i < 15; i++) {
+		seed = (seed * 9301 + 49297) % 233280;
+		result += chars[seed % chars.length];
+	}
+	return result;
+}
+

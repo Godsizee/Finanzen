@@ -1,6 +1,6 @@
 import { transactionApi, type TransactionCreate } from './api';
 import type { RecordModel } from 'pocketbase';
-import { calculateBalance } from '$lib/core/math';
+import { calculateTransactionBalanceChange } from '$lib/core/math';
 import { toast } from '$lib/core/toastStore.svelte';
 import { authStore } from '$lib/features/auth/authStore.svelte';
 import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
@@ -50,13 +50,12 @@ class TransactionStore {
 	fairSharingRatio = $derived.by(() => {
 		if (!this.fairSharingActive) return 0.5;
 		const currentUser = authStore.currentUser;
-		if (
-			currentUser?.cost_sharing_mode === 'split' &&
-			typeof currentUser.cost_sharing_percent === 'number'
-		) {
-			return currentUser.cost_sharing_percent / 100;
-		}
-		return 0.5;
+		const partnerUser = partnerStore.partnerUser;
+		const myIncome = currentUser?.income || 0;
+		const partnerIncome = partnerUser?.income || 0;
+		const totalIncome = myIncome + partnerIncome;
+		if (totalIncome <= 0) return 0.5;
+		return myIncome / totalIncome;
 	});
 
 	fairBalance = $derived.by(() => {
@@ -64,17 +63,16 @@ class TransactionStore {
 		const myId = authStore.currentUser?.id;
 		if (!myId) return 0;
 
-		const ratioA = this.fairSharingRatio;
+		const ratio = this.fairSharingRatio;
 
 		return this.unsettledTransactions.reduce((acc, tx) => {
-			if (tx.split_mode === 'kasse') return acc;
-
-			const totalAmount = tx.total_amount;
-			const didIPay = tx.paid_by === myId;
-			const myShare = Math.round(totalAmount * ratioA);
-			const myContribution = didIPay ? totalAmount : 0;
-
-			return acc + (myContribution - myShare);
+			const txCopy = {
+				total_amount: tx.total_amount,
+				paid_by: tx.paid_by,
+				split_mode: tx.split_mode === 'kasse' || tx.split_mode === 'deposit' ? tx.split_mode : 'income_ratio',
+				metadata: tx.metadata
+			};
+			return acc + calculateTransactionBalanceChange(txCopy, myId, partnerStore.partnerUser?.id, ratio);
 		}, 0);
 	});
 
@@ -83,64 +81,14 @@ class TransactionStore {
 		const myId = currentUser?.id;
 		if (!myId) return 0;
 
-		const mode = currentUser?.cost_sharing_mode || 'kasse';
-
-		if (mode === 'kasse') {
-			const myIncome = currentUser.income || 0;
-			const partnerIncome = partnerStore.partnerUser?.income || 0;
-
-			const myExpenses = this.unsettledTransactions
-				.filter((tx) => tx.paid_by === myId && tx.split_mode !== 'deposit')
-				.reduce((acc, tx) => acc + tx.total_amount, 0);
-
-			const partnerExpenses = this.unsettledTransactions
-				.filter((tx) => tx.paid_by !== myId && tx.split_mode !== 'deposit')
-				.reduce((acc, tx) => acc + tx.total_amount, 0);
-
-			const myBalanceCents = myIncome - myExpenses;
-			const partnerBalanceCents = partnerIncome - partnerExpenses;
-
-			if (myBalanceCents < 0) {
-				return Math.abs(myBalanceCents);
-			} else if (partnerBalanceCents < 0) {
-				return partnerBalanceCents; // Negative = I owe
-			} else {
-				return 0;
-			}
-		}
+		const partnerUser = partnerStore.partnerUser;
+		const myIncome = currentUser.income || 0;
+		const partnerIncome = partnerUser?.income || 0;
+		const totalIncome = myIncome + partnerIncome;
+		const myRatio = totalIncome > 0 ? myIncome / totalIncome : 0.5;
 
 		return this.unsettledTransactions.reduce((acc, tx) => {
-			if (tx.split_mode === 'kasse') return acc;
-
-			const totalAmount = tx.total_amount;
-			const didIPay = tx.paid_by === myId;
-
-			let myShare = Math.round(totalAmount / 2); // Default 50_50
-
-			if (tx.split_mode === 'fair' && this.fairSharingActive) {
-				const ratio = this.fairSharingRatio;
-				myShare = Math.round(totalAmount * ratio);
-			} else if (tx.split_mode === 'me') {
-				myShare = totalAmount;
-			} else if (tx.split_mode === 'partner') {
-				myShare = 0;
-			} else if (tx.split_mode === 'custom' && tx.metadata) {
-				try {
-					const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
-					if (meta.split_cents && meta.split_cents[myId] !== undefined) {
-						myShare = meta.split_cents[myId];
-					} else if (meta.split_percent && meta.split_percent[myId] !== undefined) {
-						myShare = Math.round(totalAmount * (meta.split_percent[myId] / 100));
-					}
-				} catch (e) {
-					console.error('Error parsing custom split metadata', e);
-				}
-			} else if (tx.split_mode === 'deposit') {
-				myShare = Math.round(totalAmount / 2);
-			}
-
-			const myContribution = didIPay ? totalAmount : 0;
-			return acc + (myContribution - myShare);
+			return acc + calculateTransactionBalanceChange(tx as any, myId, partnerUser?.id, myRatio);
 		}, 0);
 	}
 
@@ -181,6 +129,7 @@ class TransactionStore {
 			this.transactions = this.transactions.filter((tx) => tx.id !== tempId);
 			const appErr = handleAppError(err);
 			this.error = appErr.message;
+			throw err;
 		}
 	}
 	async settle(settlementId: string) {
@@ -217,11 +166,13 @@ class TransactionStore {
 			// Replace with actual updated record
 			this.transactions = this.transactions.map((tx) => (tx.id === id ? record : tx));
 			toast.success('Transaktion aktualisiert!');
+			return record;
 		} catch (err: any) {
 			// Rollback
 			this.transactions = originalTxs;
 			const appErr = handleAppError(err);
 			this.error = appErr.message;
+			throw err;
 		}
 	}
 

@@ -31,7 +31,7 @@
 	let budgetInput = $state('');
 	let savingBudget = $state(false);
 
-	let costSharingMode = $state<'kasse' | 'split'>('kasse');
+	let costSharingMode = $state<'50_50' | 'income_ratio'>('50_50');
 	let costSharingPercent = $state(50);
 	let savingCostSharing = $state(false);
 
@@ -117,7 +117,8 @@
 			incomeInput = authStore.currentUser.income
 				? (authStore.currentUser.income / 100).toString()
 				: '';
-			costSharingMode = authStore.currentUser.cost_sharing_mode || 'kasse';
+			const serverMode = authStore.currentUser.cost_sharing_mode;
+			costSharingMode = (serverMode === 'kasse' || serverMode === '50_50') ? '50_50' : 'income_ratio';
 			costSharingPercent = authStore.currentUser.cost_sharing_percent || 50;
 		}
 		const storedBudget = localStorage.getItem('fairshare_monthly_budget');
@@ -187,19 +188,15 @@
 		savingCostSharing = true;
 		try {
 			const updated = await authApi.updateProfile({
-				cost_sharing_mode: costSharingMode,
-				cost_sharing_percent: costSharingPercent
+				cost_sharing_mode: costSharingMode
 			});
 			authStore.currentUser = updated;
 
 			if (partnerStore.partnerStatus === 'active' && partnerStore.partnerUser) {
-				const partnerPercent = 100 - costSharingPercent;
 				await pb.collection('users').update(partnerStore.partnerUser.id, {
-					cost_sharing_mode: costSharingMode,
-					cost_sharing_percent: partnerPercent
+					cost_sharing_mode: costSharingMode
 				});
 				partnerStore.partnerUser.cost_sharing_mode = costSharingMode;
-				partnerStore.partnerUser.cost_sharing_percent = partnerPercent;
 			}
 			toast.success('Kostenaufteilung gespeichert!');
 		} catch (err: any) {
@@ -353,56 +350,61 @@
 			<div class="flex rounded-xl bg-slate-100 p-1">
 				<button
 					type="button"
-					onclick={() => (costSharingMode = 'kasse')}
+					onclick={() => (costSharingMode = '50_50')}
 					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
-					'kasse'
+					'50_50'
 						? 'bg-white text-slate-900 shadow-sm'
 						: 'text-slate-500 hover:text-slate-700'}"
 				>
-					Gemeinsame Kasse
+					Gleichmäßig 50/50
 				</button>
 				<button
 					type="button"
-					onclick={() => (costSharingMode = 'split')}
+					onclick={() => (costSharingMode = 'income_ratio')}
 					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
-					'split'
+					'income_ratio'
 						? 'bg-white text-slate-900 shadow-sm'
 						: 'text-slate-500 hover:text-slate-700'}"
 				>
-					Prozentualer Split
+					Nach Nettoeinkommen
 				</button>
 			</div>
 
-			{#if costSharingMode === 'split'}
-				<div class="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
-					<div class="flex items-center justify-between text-sm font-medium">
-						<span class="text-slate-900">Du zahlst: {costSharingPercent}%</span>
-						<span class="text-slate-500"
-							>{partnerStore.partnerUser?.name || 'Partner'}: {100 - costSharingPercent}%</span
-						>
+			{#if costSharingMode === 'income_ratio'}
+				{@const myInc = authStore.currentUser?.income || 0}
+				{@const partnerInc = (partnerStore.partnerStatus === 'active' && partnerStore.partnerUser?.income) || 0}
+				{#if myInc > 0 && partnerInc > 0}
+					{@const total = myInc + partnerInc}
+					{@const myPercent = Math.round((myInc / total) * 100)}
+					{@const partnerPercent = 100 - myPercent}
+					<div class="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+						<div class="flex items-center justify-between text-sm font-medium">
+							<span class="text-slate-900">Du zahlst: {myPercent}%</span>
+							<span class="text-slate-500"
+								>{partnerStore.partnerUser?.name || 'Partner'}: {partnerPercent}%</span
+							>
+						</div>
+						<div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-200">
+							<div
+								class="h-full bg-slate-900 transition-all"
+								style="width: {myPercent}%"
+							></div>
+							<div
+								class="h-full bg-slate-400 transition-all"
+								style="width: {partnerPercent}%"
+							></div>
+						</div>
+						<p class="text-center text-xs text-slate-500">
+							Das Verhältnis wird automatisch anhand eurer Nettoeinkommen berechnet.
+						</p>
 					</div>
-					<input
-						type="range"
-						min="5"
-						max="95"
-						step="5"
-						bind:value={costSharingPercent}
-						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-slate-900"
-					/>
-					<div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-200">
-						<div
-							class="h-full bg-slate-900 transition-all"
-							style="width: {costSharingPercent}%"
-						></div>
-						<div
-							class="h-full bg-slate-400 transition-all"
-							style="width: {100 - costSharingPercent}%"
-						></div>
+				{:else}
+					<div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
+						<p class="text-center text-sm text-amber-800">
+							Bitte tragt beide euer Nettoeinkommen ein, um das einkommensbasierte Verhältnis zu berechnen.
+						</p>
 					</div>
-					<p class="text-center text-xs text-slate-500">
-						Wenn eine Transaktion geteilt wird, übernimmst du {costSharingPercent}% der Kosten.
-					</p>
-				</div>
+				{/if}
 			{:else}
 				<div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
 					<p class="text-center text-sm text-slate-600">

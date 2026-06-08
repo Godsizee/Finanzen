@@ -7,6 +7,7 @@
 	import { settlementApi } from '$lib/features/settlements/api';
 	import { formatCurrency } from '$lib/core/math';
 	import { toast } from '$lib/core/toastStore.svelte';
+	import { pb } from '$lib/core/pb';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
 	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
@@ -88,15 +89,46 @@
 		loading = true;
 		try {
 			const amount = Math.abs(myBalance);
+			const myId = authStore.currentUser!.id;
+			const partnerId = partnerStore.partnerUser!.id;
 
-			const settlement = await settlementApi.create({
+			const payerId = myBalance < 0 ? myId : partnerId;
+			const receiverId = myBalance < 0 ? partnerId : myId;
+			const splitMode = authStore.currentUser?.cost_sharing_mode || '50_50';
+
+			const unsettledTxs = [...unsettled];
+			const details = {
+				unsettled_transaction_ids: unsettledTxs.map((tx) => tx.id),
+				cost_sharing_mode: splitMode,
+				payer_name: myBalance < 0 ? authStore.currentUser?.name : partnerStore.partnerUser?.name,
+				receiver_name: myBalance < 0 ? partnerStore.partnerUser?.name : authStore.currentUser?.name
+			};
+
+			const settlementId = Array.from({ length: 15 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
+
+			const batch = pb.createBatch();
+
+			batch.collection('settlements').create({
+				id: settlementId,
 				date: new Date().toISOString(),
 				amount,
-				created_by: authStore.currentUser!.id,
-				settled_with: partnerStore.partnerUser!.id
+				created_by: myId,
+				settled_with: partnerId,
+				status: 'bezahlt',
+				payer: payerId,
+				receiver: receiverId,
+				split_mode: splitMode,
+				details: details
 			});
 
-			await transactionStore.settle(settlement.id);
+			for (const tx of unsettledTxs) {
+				batch.collection('transactions').update(tx.id, {
+					settlement_id: settlementId
+				});
+			}
+
+			await batch.send();
+			await transactionStore.load();
 			toast.success('Abrechnung erfolgreich abgeschlossen!');
 		} catch (e: any) {
 			toast.error('Fehler bei der Abrechnung: ' + e.message);

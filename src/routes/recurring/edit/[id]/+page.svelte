@@ -7,6 +7,7 @@
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { toCents } from '$lib/core/math';
+	import { isValidAmount } from '$lib/core/validation';
 	import { toast } from '$lib/core/toastStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -92,7 +93,7 @@
 			toast.error('Bitte einen Namen eingeben');
 			return;
 		}
-		if (!amount || isNaN(parseFloat(amount.replace(',', '.')))) {
+		if (!isValidAmount(amount)) {
 			toast.error('Bitte einen gültigen Betrag eingeben');
 			return;
 		}

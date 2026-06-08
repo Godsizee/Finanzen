@@ -121,9 +121,26 @@ async function updateSchema() {
 					setUpdated = true;
 				}
 			}
+
+			const requiredFields = [
+				{ name: 'status', type: 'text', required: false },
+				{ name: 'payer', type: 'relation', collectionId: usersCollection.id, maxSelect: 1, required: false },
+				{ name: 'receiver', type: 'relation', collectionId: usersCollection.id, maxSelect: 1, required: false },
+				{ name: 'split_mode', type: 'text', required: false },
+				{ name: 'details', type: 'json', required: false }
+			];
+
+			for (const field of requiredFields) {
+				const hasField = settlementsCollection.fields.some((f) => f.name === field.name);
+				if (!hasField) {
+					settlementsCollection.fields.push(field);
+					setUpdated = true;
+				}
+			}
+
 			if (setUpdated) {
 				await pb.collections.update('settlements', settlementsCollection);
-				console.log('Settlements rules updated successfully.');
+				console.log('Settlements updated successfully.');
 			} else {
 				console.log('Settlements collection is already up to date.');
 			}
@@ -148,7 +165,12 @@ async function updateSchema() {
 						collectionId: usersCollection.id,
 						maxSelect: 1,
 						required: true
-					}
+					},
+					{ name: 'status', type: 'text', required: false },
+					{ name: 'payer', type: 'relation', collectionId: usersCollection.id, maxSelect: 1, required: false },
+					{ name: 'receiver', type: 'relation', collectionId: usersCollection.id, maxSelect: 1, required: false },
+					{ name: 'split_mode', type: 'text', required: false },
+					{ name: 'details', type: 'json', required: false }
 				],
 				listRule: 'created_by = @request.auth.id || settled_with = @request.auth.id',
 				viewRule: 'created_by = @request.auth.id || settled_with = @request.auth.id',

@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { transactionStore } from '$lib/features/transactions/store.svelte';
 	import { toCents } from '$lib/core/math';
+	import { isValidAmount } from '$lib/core/validation';
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import { ArrowLeft } from '@lucide/svelte';
@@ -122,7 +123,7 @@
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (!amount || isNaN(parseFloat(amount.replace(',', '.')))) {
+		if (!isValidAmount(amount)) {
 			toast.error('Bitte einen gültigen Betrag eingeben');
 			return;
 		}
@@ -149,7 +150,20 @@
 			finalSplitMode = 'kasse';
 		}
 
-		if (finalSplitMode === 'custom') {
+		if (type === 'expense' && payer !== 'kasse' && (finalSplitMode === 'income_ratio' || finalSplitMode === 'fair')) {
+			const myIncome = authStore.currentUser?.income || 0;
+			const partnerIncome = partnerStore.partnerUser?.income || 0;
+			const total = myIncome + partnerIncome;
+			const myPercent = total > 0 ? Math.round((myIncome / total) * 100) : 50;
+			const partnerPercent = 100 - myPercent;
+
+			metadata = {
+				split_percent: {
+					[authStore.currentUser?.id || '']: myPercent,
+					[partnerStore.partnerUser?.id || '']: partnerPercent
+				}
+			};
+		} else if (finalSplitMode === 'custom') {
 			if (customSplitType === 'percent') {
 				const pctMe = parseFloat(splitPercentMe);
 				const pctPartner = parseFloat(splitPercentPartner);
@@ -194,9 +208,14 @@
 			metadata: metadata
 		};
 
-		await transactionStore.updateTransaction(id, dataToUpdate);
-		loading = false;
-		goto('/history');
+		try {
+			await transactionStore.updateTransaction(id, dataToUpdate);
+			goto('/history');
+		} catch (err: any) {
+			toast.error('Fehler beim Aktualisieren: ' + (err.message || err));
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 
@@ -326,7 +345,7 @@
 					>
 						<option value="50_50">Geteilt (50:50)</option>
 						{#if partnerStore.partnerStatus === 'active'}
-							<option value="fair">Faires Split-Verhältnis (Einkommensbasiert)</option>
+							<option value="income_ratio">Nach Nettoeinkommen (Einkommensbasiert)</option>
 						{/if}
 						<option value="me">Nur Ich (Persönliche Ausgabe)</option>
 						<option value="partner">Nur Partner</option>

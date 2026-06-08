@@ -4,6 +4,7 @@ import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
 import { SvelteDate } from 'svelte/reactivity';
+import { generateDeterministicId } from '$lib/core/math';
 
 interface PocketBaseError {
 	message?: string;
@@ -159,16 +160,26 @@ class RecurringStore {
 				for (const dueDate of dueDates) {
 					// Format date to PocketBase format: YYYY-MM-DD 12:00:00
 					const formattedDate = dueDate.toISOString().slice(0, 10) + ' 12:00:00';
+					const deterministicId = generateDeterministicId(rule.id, formattedDate);
 
-					// Create transaction
-					await transactionApi.create({
-						total_amount: rule.amount,
-						date: formattedDate,
-						paid_by: rule.paid_by,
-						split_mode: rule.split_mode,
-						note: rule.name,
-						category: rule.category
-					});
+					try {
+						// Create transaction
+						await transactionApi.create({
+							id: deterministicId,
+							total_amount: rule.amount,
+							date: formattedDate,
+							paid_by: rule.paid_by,
+							split_mode: rule.split_mode,
+							note: rule.name,
+							category: rule.category
+						});
+					} catch (err: any) {
+						if (err.status === 400 || err.message?.includes('constraint') || err.message?.includes('already exists')) {
+							console.log('Transaction already generated, skipping...');
+						} else {
+							throw err;
+						}
+					}
 
 					latestDateStr = formattedDate;
 					generatedCount++;
