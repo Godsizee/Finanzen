@@ -68,8 +68,36 @@ class TransactionStore {
 	});
 
 	private calculateTotalBalance(): number {
-		const myId = authStore.currentUser?.id;
+		const currentUser = authStore.currentUser;
+		const myId = currentUser?.id;
 		if (!myId) return 0;
+		
+		const mode = currentUser?.cost_sharing_mode || 'kasse';
+
+		if (mode === 'kasse') {
+			const myIncome = currentUser.income || 0;
+			const partnerIncome = partnerStore.partnerUser?.income || 0;
+			
+			const myExpenses = this.unsettledTransactions
+				.filter(tx => tx.paid_by === myId && tx.split_mode !== 'deposit')
+				.reduce((acc, tx) => acc + tx.total_amount, 0);
+				
+			const partnerExpenses = this.unsettledTransactions
+				.filter(tx => tx.paid_by !== myId && tx.split_mode !== 'deposit')
+				.reduce((acc, tx) => acc + tx.total_amount, 0);
+				
+			const myBalanceCents = myIncome - myExpenses;
+			const partnerBalanceCents = partnerIncome - partnerExpenses;
+			
+			if (myBalanceCents < 0) {
+				return Math.abs(myBalanceCents);
+			} else if (partnerBalanceCents < 0) {
+				return partnerBalanceCents; // Negative = I owe
+			} else {
+				return 0;
+			}
+		}
+
 		return this.unsettledTransactions.reduce((acc, tx) => {
 			if (tx.split_mode === 'kasse') return acc;
 			

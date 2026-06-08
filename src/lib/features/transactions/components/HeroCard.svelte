@@ -11,6 +11,7 @@
 	let isZero = $derived(balance === 0);
 	
 	let isPartnerActive = $derived(partnerStore.partnerStatus === 'active');
+	let isKasseMode = $derived(authStore.currentUser?.cost_sharing_mode === 'kasse');
 	
 	let totalIncome = $derived.by(() => {
 		const myInc = authStore.currentUser?.income || 0;
@@ -25,21 +26,41 @@
 			Offener Ausgleich
 		</span>
 		<div class="text-2xl font-bold tracking-tight {isPositive ? 'text-emerald-400' : isNegative ? 'text-red-400' : 'text-slate-200'}">
-			{#if isPositive}
-				Du bekommst {formatCurrency(balance)} zurück.
-			{:else if isNegative}
-				Du schuldest {formatCurrency(Math.abs(balance))}.
+			{#if isKasseMode}
+				{#if isPositive}
+					Dir fehlen {formatCurrency(balance)}.
+				{:else if isNegative}
+					{partnerStore.partnerUser?.name || 'Partner'} fehlen {formatCurrency(Math.abs(balance))}.
+				{:else}
+					Kontostand gedeckt.
+				{/if}
 			{:else}
-				Ihr seid quitt.
+				{#if isPositive}
+					Du bekommst {formatCurrency(balance)} zurück.
+				{:else if isNegative}
+					Du schuldest {formatCurrency(Math.abs(balance))}.
+				{:else}
+					Ihr seid quitt.
+				{/if}
 			{/if}
 		</div>
 		<span class="text-xs {isPositive ? 'text-emerald-400/80' : isNegative ? 'text-red-400/80' : 'text-slate-400'} mt-1">
-			{#if isPositive}
-				Dein Partner sollte dir diesen Betrag überweisen.
-			{:else if isNegative}
-				Du solltest deinem Partner diesen Betrag überweisen.
+			{#if isKasseMode}
+				{#if isPositive}
+					Dein Partner müsste sie dir überweisen.
+				{:else if isNegative}
+					Du solltest sie deinem Partner überweisen.
+				{:else}
+					Aktuell ist kein Ausgleich erforderlich.
+				{/if}
 			{:else}
-				Aktuell ist kein Ausgleich erforderlich.
+				{#if isPositive}
+					Dein Partner sollte dir diesen Betrag überweisen.
+				{:else if isNegative}
+					Du solltest deinem Partner diesen Betrag überweisen.
+				{:else}
+					Aktuell ist kein Ausgleich erforderlich.
+				{/if}
 			{/if}
 		</span>
 	</div>
