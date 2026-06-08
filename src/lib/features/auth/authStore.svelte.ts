@@ -17,8 +17,9 @@ class AuthStore {
 		try {
 			await authApi.login(email, pass);
 			toast.success('Erfolgreich eingeloggt!');
-		} catch (err: any) {
-			toast.error('Login fehlgeschlagen: ' + (err.message || 'Falsche Daten?'));
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : '';
+			toast.error('Login fehlgeschlagen: ' + (msg || 'Falsche Daten?'));
 			throw err;
 		}
 	}
@@ -27,8 +28,9 @@ class AuthStore {
 		try {
 			await authApi.register(email, pass, name);
 			toast.success('Registrierung erfolgreich!');
-		} catch (err: any) {
-			toast.error('Registrierung fehlgeschlagen: ' + (err.message || 'Ein Fehler ist aufgetreten'));
+		} catch (err) {
+			const msg = err instanceof Error ? err.message : '';
+			toast.error('Registrierung fehlgeschlagen: ' + (msg || 'Ein Fehler ist aufgetreten'));
 			throw err;
 		}
 	}

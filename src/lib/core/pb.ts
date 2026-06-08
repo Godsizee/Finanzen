@@ -7,7 +7,7 @@ export const pb = new PocketBase(PUBLIC_POCKETBASE_URL);
 pb.autoCancellation(false);
 
 // Auto logout and redirect on 401/403 Unauthorized
-pb.afterSend = (response: Response, data: any) => {
+pb.afterSend = (response: Response, data: unknown) => {
 	if (response.status === 401 || response.status === 403) {
 		pb.authStore.clear();
 		if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {

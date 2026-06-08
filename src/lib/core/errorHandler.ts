@@ -1,6 +1,7 @@
 import { toast } from './toastStore.svelte';
 import { authStore } from '$lib/features/auth/authStore.svelte';
 import { goto } from '$app/navigation';
+import { base } from '$app/paths';
 
 export class AppError extends Error {
 	constructor(
@@ -13,7 +14,15 @@ export class AppError extends Error {
 	}
 }
 
-export function handleAppError(err: any): AppError {
+interface PocketBaseError {
+	status?: number;
+	message?: string;
+	response?: {
+		data?: Record<string, { message?: string }>;
+	};
+}
+
+export function handleAppError(err: unknown): AppError {
 	console.error('Captured application error:', err);
 
 	let message = 'Ein unerwarteter Fehler ist aufgetreten.';
@@ -21,39 +30,40 @@ export function handleAppError(err: any): AppError {
 	let status = 0;
 
 	if (err && typeof err === 'object') {
-		if (err.status) {
-			status = err.status;
-			if (err.status === 401 || err.status === 403) {
+		const pbErr = err as PocketBaseError;
+		if (pbErr.status) {
+			status = pbErr.status;
+			if (pbErr.status === 401 || pbErr.status === 403) {
 				message = 'Sitzung abgelaufen oder nicht autorisiert. Bitte logge dich neu ein.';
 				code = 'UNAUTHORIZED';
 				authStore.logout();
-				goto('/login');
-			} else if (err.status === 400) {
-				if (err.response?.data) {
-					const data = err.response.data;
+				goto(`${base}/login`);
+			} else if (pbErr.status === 400) {
+				if (pbErr.response?.data) {
+					const data = pbErr.response.data;
 					const firstKey = Object.keys(data)[0];
 					if (firstKey) {
 						message = `Ungültige Eingabe: ${firstKey} - ${data[firstKey].message}`;
 					} else {
-						message = err.message || 'Fehlerhafte Anfrage.';
+						message = pbErr.message || 'Fehlerhafte Anfrage.';
 					}
 				} else {
-					message = err.message || 'Fehlerhafte Anfrage.';
+					message = pbErr.message || 'Fehlerhafte Anfrage.';
 				}
 				code = 'BAD_REQUEST';
-			} else if (err.status === 404) {
+			} else if (pbErr.status === 404) {
 				message = 'Die angeforderte Ressource wurde nicht gefunden.';
 				code = 'NOT_FOUND';
-			} else if (err.status >= 500) {
+			} else if (pbErr.status >= 500) {
 				message = 'Der Server hat ein Problem. Bitte versuche es später noch einmal.';
 				code = 'SERVER_ERROR';
 			}
-		} else if (err.message) {
-			if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+		} else if (pbErr.message) {
+			if (pbErr.message.includes('Failed to fetch') || pbErr.message.includes('NetworkError')) {
 				message = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
 				code = 'NETWORK_ERROR';
 			} else {
-				message = err.message;
+				message = pbErr.message;
 			}
 		}
 	} else if (typeof err === 'string') {
