@@ -5,6 +5,7 @@ import { toast } from '$lib/core/toastStore.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
 import { SvelteDate } from 'svelte/reactivity';
 import { generateDeterministicId } from '$lib/core/math';
+import { getDueDates } from './dateUtils';
 
 interface PocketBaseError {
 	message?: string;
@@ -82,54 +83,7 @@ class RecurringStore {
 		frequency: string,
 		lastGeneratedStr: string | null
 	): Date[] {
-		const start = new SvelteDate(startDateStr);
-		start.setUTCHours(12, 0, 0, 0);
-
-		let current = new SvelteDate(start);
-		if (lastGeneratedStr) {
-			const lastGen = new SvelteDate(lastGeneratedStr);
-			lastGen.setUTCHours(12, 0, 0, 0);
-			current = new SvelteDate(lastGen);
-
-			if (frequency === 'monthly') {
-				current.setUTCMonth(current.getUTCMonth() + 1);
-			} else if (frequency === 'quarterly') {
-				current.setUTCMonth(current.getUTCMonth() + 3);
-			} else if (frequency === 'yearly') {
-				current.setUTCFullYear(current.getUTCFullYear() + 1);
-			}
-		}
-
-		current.setUTCDate(dayOfMonth);
-
-		const today = new SvelteDate();
-		today.setHours(12, 0, 0, 0);
-
-		const dueDates: Date[] = [];
-
-		if (current < start) {
-			if (frequency === 'monthly') {
-				current.setUTCMonth(current.getUTCMonth() + 1);
-			} else if (frequency === 'quarterly') {
-				current.setUTCMonth(current.getUTCMonth() + 3);
-			} else if (frequency === 'yearly') {
-				current.setUTCFullYear(current.getUTCFullYear() + 1);
-			}
-		}
-
-		while (current <= today) {
-			dueDates.push(new SvelteDate(current));
-
-			if (frequency === 'monthly') {
-				current.setUTCMonth(current.getUTCMonth() + 1);
-			} else if (frequency === 'quarterly') {
-				current.setUTCMonth(current.getUTCMonth() + 3);
-			} else if (frequency === 'yearly') {
-				current.setUTCFullYear(current.getUTCFullYear() + 1);
-			}
-		}
-
-		return dueDates;
+		return getDueDates(startDateStr, dayOfMonth, frequency, lastGeneratedStr);
 	}
 
 	// Trigger transaction generation for all active rules
