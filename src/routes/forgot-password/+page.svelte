@@ -42,9 +42,7 @@
 
 		{#if !sent}
 			<div class="text-center space-y-2">
-				<div class="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-2">
-					<KeyRound class="w-6 h-6 text-slate-900" />
-				</div>
+				<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
 				<h1 class="text-2xl font-bold text-slate-900">Passwort vergessen?</h1>
 				<p class="text-slate-500 text-sm">Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.</p>
 			</div>

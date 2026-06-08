@@ -37,7 +37,8 @@
 
 <!-- Desktop Sidebar Navigation -->
 <aside class="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-slate-900 text-slate-300 z-40">
-	<div class="p-6">
+	<div class="p-6 flex items-center gap-3">
+		<img src="/logo.svg" alt="FairShare Logo" class="w-8 h-8" />
 		<h1 class="text-2xl font-bold text-white tracking-tight">FairShare</h1>
 	</div>
 	

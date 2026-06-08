@@ -107,9 +107,7 @@
 		{:else}
 			<!-- Info-Screen für unbestätigte Nutzer -->
 			<div class="text-center space-y-3">
-				<div class="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-2">
-					<Mail class="w-6 h-6 text-slate-900" />
-				</div>
+				<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
 				<h1 class="text-2xl font-bold text-slate-900">E-Mail bestätigen</h1>
 				<p class="text-slate-500 text-sm">
 					Bitte bestätige deine E-Mail-Adresse unter <strong class="text-slate-800">{authStore.currentUser?.email}</strong>, um FairShare zu nutzen.

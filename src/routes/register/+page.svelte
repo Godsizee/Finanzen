@@ -39,9 +39,7 @@
 <div class="flex flex-col items-center justify-center min-h-[80vh] p-4">
 	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
 		<div class="text-center space-y-2">
-			<div class="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-2">
-				<UserPlus class="w-6 h-6 text-slate-900" />
-			</div>
+			<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
 			<h1 class="text-2xl font-bold text-slate-900">Neuer Account</h1>
 			<p class="text-slate-500">Registriere dich für FairShare.</p>
 		</div>

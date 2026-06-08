@@ -112,7 +112,10 @@
 
 <div class="p-4 pt-8 h-full flex flex-col relative bg-slate-50">
 	<header class="mb-6 px-1 flex justify-between items-center">
-		<h1 class="text-2xl font-bold tracking-tight text-slate-900">Übersicht</h1>
+		<div class="flex items-center gap-2">
+			<img src="/logo.svg" alt="FairShare Logo" class="w-8 h-8" />
+			<h1 class="text-xl font-bold tracking-tight text-slate-900">FairShare</h1>
+		</div>
 		<div class="flex items-center gap-4">
 			<a href="/recurring" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
 				Abos
