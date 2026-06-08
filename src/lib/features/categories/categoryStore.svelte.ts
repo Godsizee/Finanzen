@@ -23,7 +23,7 @@ class CategoryStore {
 					{ name: 'Drogerie & Haushalt', icon: 'Sparkles', color: 'pink' },
 					{ name: 'Mobilität & Auto', icon: 'Car', color: 'indigo' },
 					{ name: 'Freizeit & Hobbys', icon: 'Gamepad2', color: 'violet' },
-					{ name: 'Abos & Verträge', icon: 'Tv', color: 'cyan' },
+					{ name: 'Fixkosten & Verträge', icon: 'Tv', color: 'cyan' },
 					{ name: 'Restaurants & Ausgehen', icon: 'Utensils', color: 'orange' },
 					{ name: 'Gesundheit', icon: 'Heart', color: 'red' },
 					{ name: 'Versicherungen', icon: 'Shield', color: 'rose' },
@@ -38,6 +38,17 @@ class CategoryStore {
 				}
 				list = created;
 				console.log('Categories seeded successfully!');
+			} else {
+				// Migrate existing category name if it is still 'Abos & Verträge'
+				const oldCat = list.find((c) => c.name === 'Abos & Verträge');
+				if (oldCat) {
+					try {
+						const updated = await categoryApi.update(oldCat.id, { name: 'Fixkosten & Verträge' });
+						list = list.map((c) => (c.id === oldCat.id ? updated : c));
+					} catch (e) {
+						console.error('Failed to migrate category name:', e);
+					}
+				}
 			}
 
 			this.categories = list;

@@ -129,7 +129,7 @@
 	</header>
 
 	{#if recurringStore.loading}
-		<div class="py-10 text-center text-sm text-slate-400">Lädt Abonnements...</div>
+		<div class="py-10 text-center text-sm text-slate-400">Lädt Fixkosten...</div>
 	{:else}
 		<div class="flex flex-1 flex-col gap-3">
 			{#if recurringStore.expenses.length === 0}
@@ -146,7 +146,7 @@
 					</p>
 					<Button onclick={() => goto('/recurring/add')} variant="primary" class="mx-auto">
 						<Plus size={18} class="mr-2" />
-						Abo einrichten
+						Fixkosten einrichten
 					</Button>
 				</div>
 			{:else}
@@ -262,7 +262,7 @@
 		<a
 			href="/recurring/add"
 			class="fixed bottom-6 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition-transform hover:bg-slate-800 active:scale-95"
-			aria-label="Neues Abo hinzufügen"
+			aria-label="Neue Fixkosten hinzufügen"
 		>
 			<Plus size={24} />
 		</a>
@@ -270,9 +270,9 @@
 
 	<ConfirmDialog
 		bind:show={showConfirmDelete}
-		title="Abo löschen"
-		message="Möchtest du dieses wiederkehrende Abonnement wirklich löschen? Zukünftige Ausgaben werden nicht mehr automatisch generiert."
-		confirmText="Abo löschen"
+		title="Fixkosten löschen"
+		message="Möchtest du diese wiederkehrenden Fixkosten wirklich löschen? Zukünftige Ausgaben werden nicht mehr automatisch generiert."
+		confirmText="Fixkosten löschen"
 		cancelText="Abbrechen"
 		variant="danger"
 		onconfirm={executeDelete}

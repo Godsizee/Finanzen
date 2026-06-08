@@ -5,7 +5,7 @@
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { settlementApi } from '$lib/features/settlements/api';
-	import { formatCurrency } from '$lib/core/math';
+	import { formatCurrency, getTransactionShare } from '$lib/core/math';
 	import { toast } from '$lib/core/toastStore.svelte';
 	import { pb } from '$lib/core/pb';
 	import Button from '$lib/ui/Button.svelte';
@@ -143,6 +143,71 @@
 		if (myBalance > 0) return `Dein Partner überweist dir ${formatCurrency(myBalance)}.`;
 		if (myBalance < 0) return `Du überweist deinem Partner ${formatCurrency(Math.abs(myBalance))}.`;
 		return 'Ihr seid quitt.';
+	});
+
+	let settleDetails = $derived.by(() => {
+		if (unsettled.length === 0) return '';
+		const myId = authStore.currentUser?.id;
+		const partnerId = partnerStore.partnerUser?.id;
+		if (!myId || !partnerId) return '';
+
+		const globalMode = authStore.currentUser?.cost_sharing_mode || '50_50';
+		const myIncome = authStore.currentUser?.income || 0;
+		const partnerIncome = partnerStore.partnerUser?.income || 0;
+		const totalIncome = myIncome + partnerIncome;
+		const myRatio = (globalMode === '50_50' || totalIncome <= 0) ? 0.5 : myIncome / totalIncome;
+
+		let totalShared = 0;
+		let paidByMe = 0;
+		let paidByPartner = 0;
+		let mySharedShare = 0;
+		let partnerSharedShare = 0;
+
+		let kasseDepositedByMe = 0;
+		let kasseDepositedByPartner = 0;
+
+		for (const tx of unsettled) {
+			const amt = tx.total_amount;
+			const isMe = tx.paid_by === myId;
+
+			let txSplitMode = tx.split_mode;
+			if (txSplitMode === '50_50' || txSplitMode === 'income_ratio' || txSplitMode === 'fair') {
+				txSplitMode = globalMode;
+			}
+
+			if (txSplitMode === 'deposit') {
+				if (isMe) kasseDepositedByMe += amt;
+				else kasseDepositedByPartner += amt;
+			} else if (txSplitMode === 'kasse') {
+				// paid from joint pool
+			} else {
+				// Shared expense
+				totalShared += amt;
+				if (isMe) paidByMe += amt;
+				else paidByPartner += amt;
+
+				const myShare = getTransactionShare(amt, txSplitMode, tx.paid_by, myId, partnerId, myRatio, tx.metadata);
+				mySharedShare += myShare;
+				partnerSharedShare += (amt - myShare);
+			}
+		}
+
+		const meName = authStore.currentUser?.name || 'Du';
+		const partnerName = partnerStore.partnerUser?.name || 'Partner';
+
+		let text = '';
+		if (totalShared > 0) {
+			text += `• Gemeinsame Ausgaben: ${formatCurrency(totalShared)}\n`;
+			text += `  - Von ${meName} bezahlt: ${formatCurrency(paidByMe)} (Anteil: ${formatCurrency(mySharedShare)})\n`;
+			text += `  - Von ${partnerName} bezahlt: ${formatCurrency(paidByPartner)} (Anteil: ${formatCurrency(partnerSharedShare)})\n`;
+		}
+		if (kasseDepositedByMe > 0 || kasseDepositedByPartner > 0) {
+			text += `• Einzahlungen in die Kasse:\n`;
+			if (kasseDepositedByMe > 0) text += `  - Von ${meName}: ${formatCurrency(kasseDepositedByMe)}\n`;
+			if (kasseDepositedByPartner > 0) text += `  - Von ${partnerName}: ${formatCurrency(kasseDepositedByPartner)}\n`;
+		}
+
+		return text;
 	});
 
 	// Filtering Logic
@@ -435,7 +500,7 @@
 								<button
 									onclick={() => goto(`/recurring/add?from_tx=${tx.id}`)}
 									class="rounded-lg p-2 transition-all hover:bg-slate-100 hover:text-slate-900 active:scale-90"
-									title="Als Abo speichern"
+									title="Als Fixkosten speichern"
 								>
 									<CalendarPlus size={16} />
 								</button>
@@ -524,7 +589,7 @@
 <ConfirmDialog
 	bind:show={showConfirm}
 	title="Abrechnung abschließen"
-	message="{settleMessage} Enthalten sind {unsettled.length} offene Buchungen."
+	message="{settleMessage}\n\nEnthalten sind {unsettled.length} offene Buchungen.\n\n{settleDetails}"
 	confirmText="Abrechnung abschließen"
 	onconfirm={performSettle}
 />

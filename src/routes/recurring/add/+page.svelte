@@ -125,12 +125,12 @@
 		>
 			<ArrowLeft size={24} class="text-slate-900" />
 		</button>
-		<h1 class="text-xl font-bold tracking-tight text-slate-900">Abo einrichten</h1>
+		<h1 class="text-xl font-bold tracking-tight text-slate-900">Fixkosten einrichten</h1>
 	</header>
 
 	<form onsubmit={handleSubmit} class="flex flex-1 flex-col gap-5 pb-10">
 		<Input
-			label="Name des Abos / der Ausgabe"
+			label="Name der Fixkosten / der Ausgabe"
 			type="text"
 			placeholder="z.B. Spotify, Netflix, Miete..."
 			required
@@ -253,7 +253,7 @@
 
 		<div class="mt-auto pt-4">
 			<Button type="submit" variant="primary" class="w-full">
-				{loading ? 'Wird eingerichtet...' : 'Abo einrichten'}
+				{loading ? 'Wird eingerichtet...' : 'Fixkosten einrichten'}
 			</Button>
 		</div>
 	</form>

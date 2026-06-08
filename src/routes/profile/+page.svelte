@@ -118,7 +118,7 @@
 				? (authStore.currentUser.income / 100).toString()
 				: '';
 			const serverMode = authStore.currentUser.cost_sharing_mode;
-			costSharingMode = (serverMode === 'kasse' || serverMode === '50_50') ? '50_50' : 'income_ratio';
+			costSharingMode = serverMode === 'income_ratio' ? 'income_ratio' : '50_50';
 			costSharingPercent = authStore.currentUser.cost_sharing_percent || 50;
 		}
 		const storedBudget = localStorage.getItem('fairshare_monthly_budget');

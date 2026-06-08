@@ -16,5 +16,9 @@ export const categoryApi = {
 
 	async create(data: CategoryCreate): Promise<RecordModel> {
 		return await pb.collection('categories').create(data);
+	},
+
+	async update(id: string, data: Partial<CategoryCreate>): Promise<RecordModel> {
+		return await pb.collection('categories').update(id, data);
 	}
 };

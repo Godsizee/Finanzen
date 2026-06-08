@@ -77,7 +77,7 @@
 				</button>
 			</header>
 
-			<p class="text-sm leading-relaxed text-slate-500">{message}</p>
+			<p class="text-sm leading-relaxed text-slate-500 whitespace-pre-line">{message}</p>
 
 			<footer class="flex flex-col gap-3 pt-2 sm:flex-row">
 				<Button

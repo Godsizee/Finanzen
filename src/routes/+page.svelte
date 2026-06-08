@@ -133,7 +133,7 @@
 				href="/recurring"
 				class="text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 max-[340px]:hidden"
 			>
-				Abos
+				Fixkosten
 			</a>
 			<a
 				href="/history"
@@ -241,7 +241,7 @@
 					</div>
 					<div class="min-w-0 flex-1">
 						<h4 class="text-sm font-semibold text-slate-800">Einladung ausstehend</h4>
-						<p class="mt-0.5 text-xs text-slate-500">Werte auf Bestätigung von deines Partners.</p>
+						<p class="mt-0.5 text-xs text-slate-500">Warte auf die Bestätigung deines Partners.</p>
 					</div>
 				</div>
 				<a

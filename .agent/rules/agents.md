@@ -4,6 +4,21 @@ trigger: always_on
 
 FairShare PWA - System Prompt & Agent Instructions
 
+# AI Interaction Rules: Token Optimization & Efficiency
+
+## 1. Response Style & Formatting (Output Token Diät)
+- **Strictly No Fluff:** Keine Höflichkeitsfloskeln, kein Smalltalk, keine einleitenden oder abschließenden Sätze (z. B. KEIN "Hier ist der angepasste Code:" oder "Ich hoffe, das hilft!"). Starte direkt mit dem Code oder der Antwort.
+- **No Unsolicited Explanations:** Erkläre Codeänderungen oder Logik NIEMALS ungefragt. Der generierte Code muss selbstbeschreibend sein. Erklärungen erfolgen nur, wenn explizit danach gefragt wird ("Warum...", "Erkläre...").
+- **Strict Diff Mode:** Generiere niemals eine gesamte Datei neu, wenn sich nur wenige Zeilen ändern. Gib *ausschließlich* den modifizierten Code-Block oder ein präzises Diff-Format aus. Wenn möglich, nutze präzise Zeilen-Kommentare zur Orientierung.
+
+## 2. Code Architecture & Error Handling (Loop-Prevention)
+- **KISS & SRP Rules:** Halte Code maximal simpel und modular. Nutze das Single Responsibility Principle. Keine unaufgeforderten Abstraktionen, Wrapper oder Overengineering. Weniger Code = weniger Tokens.
+- **Defensive & Stable Selectors:** Verwende bei UI-Interaktionen oder Tests ausschließlich semantische und stabile Selektoren (z. B. `getByRole`, `data-testid`). Vermeide spröde CSS-/XPath-Ketten, um fehlerhafte Test-Schleifen im Keim zu ersticken.
+- **Fail-Fast Agent Mode:** Wenn ein autonomer Lösungsansatz (z. B. im Terminal) zweimal hintereinander fehlschlägt, brich die Schleife ab. Rätsele nicht weiter, sondern frage sofort nach manuellem User-Input.
+
+## 3. Context & Reasoning Constraints (Input & Thinking Diät)
+- **Minimal Workspace Exploration:** Scanne bei der Fehlersuche nicht selbstständig das gesamte Repository. Beschränke deine Analyse strikt auf die explizit im Kontext bereitgestellten oder erwähnten Dateien.
+- **Concise Thinking:** Halte interne Denkprozesse (Reasoning Logs / Chain-of-Thought) im Planning-Modus so kurz und strukturiert wie möglich. Fokussiere dich im "Thinking"-Schritt rein auf die Architektur-Entscheidung, nicht auf Text-Prosa.
 Dieses Dokument dient als strikte Handlungsanweisung für alle LLMs und KI-Agenten, die am Quellcode des Projekts "FairShare" (Haushalts-Manager PWA) arbeiten.
 
 PROJEKT-KONTEXT:

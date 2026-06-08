@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { Home, History, Plus, Repeat, User } from '@lucide/svelte';
 	import { page } from '$app/stores';
+	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
+	import { authApi } from '$lib/features/auth/api';
+	import { pb } from '$lib/core/pb';
+	import { toast } from '$lib/core/toastStore.svelte';
 
 	let currentPath = $derived($page.url.pathname);
 
@@ -11,6 +16,26 @@
 		{ href: '/recurring', icon: Repeat, label: 'Fixkosten' },
 		{ href: '/profile', icon: User, label: 'Profil' }
 	];
+
+	let isPartnerActive = $derived(partnerStore.partnerStatus === 'active');
+
+	async function handleModeChange(e: Event) {
+		const target = e.target as HTMLSelectElement;
+		const newMode = target.value;
+		try {
+			const updated = await authApi.updateProfile({ cost_sharing_mode: newMode });
+			authStore.currentUser = updated;
+			if (isPartnerActive && partnerStore.partnerUser) {
+				await pb.collection('users').update(partnerStore.partnerUser.id, {
+					cost_sharing_mode: newMode
+				});
+				partnerStore.partnerUser.cost_sharing_mode = newMode;
+			}
+			toast.success('Abrechnungsmodus aktualisiert!');
+		} catch (err: any) {
+			toast.error('Fehler beim Aktualisieren: ' + err.message);
+		}
+	}
 </script>
 
 <!-- Mobile Bottom Navigation -->
@@ -77,4 +102,22 @@
 			{/if}
 		{/each}
 	</nav>
+
+	<!-- Cost Sharing Mode Switcher in Desktop Sidebar -->
+	<div class="border-t border-slate-800 p-4 mt-auto">
+		<div class="flex flex-col gap-1.5">
+			<label for="desktop-mode-select" class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+				Aufteilung
+			</label>
+			<select
+				id="desktop-mode-select"
+				value={authStore.currentUser?.cost_sharing_mode || '50_50'}
+				onchange={handleModeChange}
+				class="w-full rounded-lg bg-slate-800 border border-slate-700 text-white px-3 py-2 focus:outline-none cursor-pointer text-xs font-medium transition-colors hover:border-slate-600 animate-none"
+			>
+				<option value="50_50">Jeder zahlt seins selbst (50:50)</option>
+				<option value="income_ratio">Nach Nettoeinkommen</option>
+			</select>
+		</div>
+	</div>
 </aside>

@@ -71,30 +71,22 @@
 		CircleEllipsis: '🏷️'
 	};
 
-	let recentCategories = $derived.by(() => {
-		const allTxs = transactionStore.transactions;
+	let favoriteCategories = $derived.by(() => {
+		const favorites = ['Lebensmittel', 'Drogerie', 'Mobilität', 'Restaurants'];
 		const list: any[] = [];
 		const seen = new Set<string>();
 		
-		for (const tx of allTxs) {
-			if (tx.category && !seen.has(tx.category)) {
-				seen.add(tx.category);
-				const cat = categoryStore.categories.find(c => c.id === tx.category);
-				if (cat) {
-					list.push(cat);
-				}
-				if (list.length >= 6) break;
+		for (const name of favorites) {
+			const cat = categoryStore.categories.find(
+				(c) => c.name.toLowerCase().includes(name.toLowerCase())
+			);
+			if (cat && !seen.has(cat.id)) {
+				seen.add(cat.id);
+				list.push(cat);
 			}
 		}
-		
-		if (list.length < 4) {
-			for (const cat of categoryStore.categories) {
-				if (!seen.has(cat.id)) {
-					seen.add(cat.id);
-					list.push(cat);
-				}
-				if (list.length >= 6) break;
-			}
+		if (list.length === 0) {
+			return categoryStore.categories.slice(0, 4);
 		}
 		return list;
 	});
@@ -407,12 +399,12 @@
 				</div>
 			</div>
 
-			<!-- Recent Categories Bar -->
-			{#if type === 'expense' && recentCategories.length > 0}
+			<!-- Favorite Categories Bar -->
+			{#if type === 'expense' && favoriteCategories.length > 0}
 				<div class="flex flex-col gap-2">
-					<span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Häufige Kategorien</span>
+					<span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Kategorie-Favoriten</span>
 					<div class="flex gap-2 overflow-x-auto pb-1 select-none">
-						{#each recentCategories as cat (cat.id)}
+						{#each favoriteCategories as cat (cat.id)}
 							{@const emoji = categoryEmojis[cat.icon] || '🏷️'}
 							<button
 								type="button"

@@ -3,6 +3,9 @@
 	import { formatCurrency } from '$lib/core/math';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
+	import { authApi } from '$lib/features/auth/api';
+	import { pb } from '$lib/core/pb';
+	import { toast } from '$lib/core/toastStore.svelte';
 
 	let balance = $derived(transactionStore.myBalance);
 	let kasseBalance = $derived(transactionStore.kasseBalance);
@@ -18,6 +21,24 @@
 		const partnerInc = (isPartnerActive && partnerStore.partnerUser?.income) || 0;
 		return myInc + partnerInc;
 	});
+
+	async function handleModeChange(e: Event) {
+		const target = e.target as HTMLSelectElement;
+		const newMode = target.value;
+		try {
+			const updated = await authApi.updateProfile({ cost_sharing_mode: newMode });
+			authStore.currentUser = updated;
+			if (isPartnerActive && partnerStore.partnerUser) {
+				await pb.collection('users').update(partnerStore.partnerUser.id, {
+					cost_sharing_mode: newMode
+				});
+				partnerStore.partnerUser.cost_sharing_mode = newMode;
+			}
+			toast.success('Abrechnungsmodus aktualisiert!');
+		} catch (err: any) {
+			toast.error('Fehler beim Aktualisieren: ' + err.message);
+		}
+	}
 </script>
 
 <div
@@ -75,6 +96,19 @@
 				Aktuell ist kein Ausgleich erforderlich.
 			{/if}
 		</span>
+	</div>
+
+	<!-- Abrechnungsmodus Switcher -->
+	<div class="flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs max-[340px]:pt-2">
+		<span class="text-slate-400 font-medium">Aufteilung:</span>
+		<select
+			value={authStore.currentUser?.cost_sharing_mode || '50_50'}
+			onchange={handleModeChange}
+			class="rounded-lg bg-slate-800 border border-slate-700 text-white px-2 py-1 focus:outline-none cursor-pointer text-[11px] font-medium transition-colors hover:border-slate-600"
+		>
+			<option value="50_50">Jeder zahlt seins selbst (50:50)</option>
+			<option value="income_ratio">Nach Nettoeinkommen</option>
+		</select>
 	</div>
 
 	<div class="my-1 h-px bg-slate-800 max-[340px]:my-0"></div>

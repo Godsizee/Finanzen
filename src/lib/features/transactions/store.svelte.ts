@@ -82,13 +82,25 @@ class TransactionStore {
 		if (!myId) return 0;
 
 		const partnerUser = partnerStore.partnerUser;
+		const globalMode = currentUser.cost_sharing_mode || '50_50';
+
 		const myIncome = currentUser.income || 0;
 		const partnerIncome = partnerUser?.income || 0;
 		const totalIncome = myIncome + partnerIncome;
-		const myRatio = totalIncome > 0 ? myIncome / totalIncome : 0.5;
+		const myRatio = (globalMode === '50_50' || totalIncome <= 0) ? 0.5 : myIncome / totalIncome;
 
 		return this.unsettledTransactions.reduce((acc, tx) => {
-			return acc + calculateTransactionBalanceChange(tx as any, myId, partnerUser?.id, myRatio);
+			let txSplitMode = tx.split_mode;
+			if (txSplitMode === '50_50' || txSplitMode === 'income_ratio' || txSplitMode === 'fair') {
+				txSplitMode = globalMode;
+			}
+			const txCopy = {
+				total_amount: tx.total_amount,
+				paid_by: tx.paid_by,
+				split_mode: txSplitMode,
+				metadata: tx.metadata
+			};
+			return acc + calculateTransactionBalanceChange(txCopy, myId, partnerUser?.id, myRatio);
 		}, 0);
 	}
 

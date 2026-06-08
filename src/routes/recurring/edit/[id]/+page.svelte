@@ -121,7 +121,7 @@
 
 		const id = ruleId;
 		if (!id) {
-			toast.error('Ungültige Abo-ID');
+			toast.error('Ungültige Fixkosten-ID');
 			loading = false;
 			return;
 		}
@@ -155,7 +155,7 @@
 	async function executeDelete() {
 		const id = ruleId;
 		if (!id) {
-			toast.error('Ungültige Abo-ID');
+			toast.error('Ungültige Fixkosten-ID');
 			return;
 		}
 
@@ -181,7 +181,7 @@
 			>
 				<ArrowLeft size={24} class="text-slate-900" />
 			</button>
-			<h1 class="text-xl font-bold tracking-tight text-slate-900">Abo bearbeiten</h1>
+			<h1 class="text-xl font-bold tracking-tight text-slate-900">Fixkosten bearbeiten</h1>
 		</div>
 		<button
 			onclick={triggerDelete}
@@ -193,11 +193,11 @@
 	</header>
 
 	{#if !isInitialized}
-		<div class="py-10 text-center text-sm text-slate-400">Lädt Abonnement-Details...</div>
+		<div class="py-10 text-center text-sm text-slate-400">Lädt Fixkosten-Details...</div>
 	{:else}
 		<form onsubmit={handleSubmit} class="flex flex-1 flex-col gap-5 pb-10">
 			<Input
-				label="Name des Abos / der Ausgabe"
+				label="Name der Fixkosten / der Ausgabe"
 				type="text"
 				placeholder="z.B. Spotify, Netflix, Miete..."
 				required
@@ -348,9 +348,9 @@
 
 	<ConfirmDialog
 		bind:show={showConfirmDelete}
-		title="Abo löschen"
-		message="Möchtest du dieses Abonnement wirklich unwiderruflich löschen?"
-		confirmText="Abo löschen"
+		title="Fixkosten löschen"
+		message="Möchtest du diese wiederkehrenden Fixkosten wirklich unwiderruflich löschen?"
+		confirmText="Fixkosten löschen"
 		cancelText="Abbrechen"
 		variant="danger"
 		onconfirm={executeDelete}
