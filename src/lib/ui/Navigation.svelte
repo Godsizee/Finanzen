@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Home, History, Plus, Repeat, Users } from '@lucide/svelte';
+	import { Home, History, Plus, Repeat, User } from '@lucide/svelte';
 	import { page } from '$app/stores';
 
 	let currentPath = $derived($page.url.pathname);
@@ -9,7 +9,7 @@
 		{ href: '/history', icon: History, label: 'Verlauf' },
 		{ href: '/add', icon: Plus, label: 'Neu', isAction: true },
 		{ href: '/recurring', icon: Repeat, label: 'Fixkosten' },
-		{ href: '/settings', icon: Users, label: 'Haushalt' }
+		{ href: '/profile', icon: User, label: 'Profil' }
 	];
 </script>
 

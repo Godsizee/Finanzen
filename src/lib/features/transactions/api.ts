@@ -2,6 +2,7 @@ import { pb } from '$lib/core/pb';
 import type { RecordModel } from 'pocketbase';
 
 export interface TransactionCreate {
+	id?: string;
 	total_amount: number;
 	date: string;
 	paid_by: string; // User ID

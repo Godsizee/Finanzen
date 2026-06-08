@@ -27,17 +27,30 @@
 				<span class="text-sm font-medium">{t.message}</span>
 			</div>
 
-			{#if t.actionName && t.actionFn}
-				<button
-					class="shrink-0 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-bold transition-colors hover:bg-white/30"
-					onclick={() => {
-						t.actionFn?.();
-						toast.toasts = toast.toasts.filter((toastItem) => toastItem.id !== t.id);
-					}}
-				>
-					{t.actionName}
-				</button>
-			{/if}
+			<div class="flex items-center gap-1.5 shrink-0">
+				{#if t.actionName && t.actionFn}
+					<button
+						class="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-bold transition-colors hover:bg-white/30"
+						onclick={() => {
+							t.actionFn?.();
+							toast.toasts = toast.toasts.filter((toastItem) => toastItem.id !== t.id);
+						}}
+					>
+						{t.actionName}
+					</button>
+				{/if}
+				{#if t.actionName2 && t.actionFn2}
+					<button
+						class="rounded-lg bg-white/20 px-2.5 py-1 text-xs font-bold transition-colors hover:bg-white/30"
+						onclick={() => {
+							t.actionFn2?.();
+							toast.toasts = toast.toasts.filter((toastItem) => toastItem.id !== t.id);
+						}}
+					>
+						{t.actionName2}
+					</button>
+				{/if}
+			</div>
 		</div>
 	{/each}
 </div>

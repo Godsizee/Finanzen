@@ -22,6 +22,7 @@
 	import SkeletonCard from '$lib/ui/SkeletonCard.svelte';
 
 	let transactions = $derived(transactionStore.transactions);
+	let cappedTransactions = $derived(transactions.slice(0, 5));
 
 	const iconMap: Record<string, any> = {
 		ShoppingBag,
@@ -78,7 +79,7 @@
 		</div>
 	{/if}
 
-	{#each transactions as tx (tx.id)}
+	{#each cappedTransactions as tx (tx.id)}
 		{@const cat = tx.expand?.category}
 		{@const IconComponent = cat ? iconMap[cat.icon] : ReceiptText}
 		{@const colorClasses = (cat && colorMap[cat.color]) || 'bg-slate-100 text-slate-600'}
@@ -178,4 +179,13 @@
 			</div>
 		{/if}
 	{/each}
+
+	{#if transactions.length > 5}
+		<a
+			href="/history"
+			class="mt-2 block text-center text-sm font-semibold text-slate-700 hover:text-slate-900 transition-colors py-3 border border-dashed border-slate-200 bg-white rounded-2xl hover:border-slate-300"
+		>
+			Alle Buchungen anzeigen ({transactions.length})
+		</a>
+	{/if}
 </div>
