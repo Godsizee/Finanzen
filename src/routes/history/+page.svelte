@@ -236,6 +236,24 @@
 	let filteredUnsettled = $derived(filterTransactions(unsettled));
 	let filteredSettled = $derived(filterTransactions(settledTxs));
 
+	function groupByMonth(txs: typeof transactionStore.transactions) {
+		const groups: Record<string, typeof transactionStore.transactions> = {};
+		for (const tx of txs) {
+			const date = new Date(tx.date);
+			const key = date.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+			if (!groups[key]) groups[key] = [];
+			groups[key].push(tx);
+		}
+		return Object.entries(groups).sort((a, b) => {
+			const dateA = new Date(a[1][0].date);
+			const dateB = new Date(b[1][0].date);
+			return dateB.getTime() - dateA.getTime();
+		});
+	}
+
+	let groupedUnsettled = $derived(groupByMonth(filteredUnsettled));
+	let groupedSettled = $derived(groupByMonth(filteredSettled));
+
 	let hasActiveFilters = $derived(
 		searchQuery || selectedCategory || selectedPayer || selectedSplit
 	);
@@ -426,8 +444,12 @@
 					</p>
 				{/if}
 				<div class="flex flex-col gap-3">
-					{#each filteredUnsettled as tx (tx.id)}
-						<Card class="flex flex-col gap-2.5 p-4 transition-all hover:border-slate-300">
+					{#each groupedUnsettled as [monthKey, txs]}
+						<div class="mt-4 mb-2 pl-2 text-[11px] font-bold tracking-widest text-slate-400 uppercase first:mt-0">
+							{monthKey}
+						</div>
+						{#each txs as tx (tx.id)}
+							<Card class="flex flex-col gap-2.5 p-4 transition-all hover:border-slate-300">
 							<div class="flex items-start justify-between">
 								<div class="flex min-w-0 flex-col">
 									<div class="flex flex-wrap items-center gap-2">
@@ -513,6 +535,7 @@
 								</button>
 							</div>
 						</Card>
+						{/each}
 					{/each}
 				</div>
 			</section>
@@ -526,8 +549,12 @@
 					</p>
 				{/if}
 				<div class="flex flex-col gap-3">
-					{#each filteredSettled as tx (tx.id)}
-						<Card class="flex flex-col gap-2.5 border-slate-200 bg-slate-100/70 p-4">
+					{#each groupedSettled as [monthKey, txs]}
+						<div class="mt-4 mb-2 pl-2 text-[11px] font-bold tracking-widest text-slate-400 uppercase first:mt-0">
+							{monthKey}
+						</div>
+						{#each txs as tx (tx.id)}
+							<Card class="flex flex-col gap-2.5 border-slate-200 bg-slate-100/70 p-4">
 							<div class="flex items-start justify-between">
 								<div class="flex min-w-0 flex-col">
 									<div class="flex flex-wrap items-center gap-2">
@@ -579,6 +606,7 @@
 								</span>
 							</div>
 						</Card>
+						{/each}
 					{/each}
 				</div>
 			</section>

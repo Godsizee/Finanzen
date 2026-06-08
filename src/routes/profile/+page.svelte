@@ -21,6 +21,8 @@
 	import { toast } from '$lib/core/toastStore.svelte';
 	import { pb } from '$lib/core/pb';
 	import { isValidEmail, isValidPassword } from '$lib/core/validation';
+	import { transactionStore } from '$lib/features/transactions/store.svelte';
+	import { Download } from '@lucide/svelte';
 
 	let searchEmail = $state('');
 	let searchResult = $state<any>(null);
@@ -110,6 +112,38 @@
 		} catch (err: any) {
 			toast.error('Fehler: ' + (err.message || err));
 		}
+	}
+
+	function handleExportCSV() {
+		const txs = transactionStore.transactions;
+		if (txs.length === 0) {
+			toast.info('Keine Transaktionen vorhanden.');
+			return;
+		}
+
+		const headers = ['Datum', 'Notiz', 'Kategorie', 'Betrag (EUR)', 'Bezahlt von', 'Split', 'Status'];
+		const rows = [headers.join(',')];
+
+		for (const tx of txs) {
+			const row = [
+				new Date(tx.date).toLocaleDateString('de-DE'),
+				`"${(tx.note || '').replace(/"/g, '""')}"`,
+				tx.expand?.category?.name || '',
+				(tx.total_amount / 100).toFixed(2).replace('.', ','),
+				tx.paid_by === authStore.currentUser?.id ? 'Ich' : 'Partner',
+				tx.split_mode,
+				tx.settlement_id ? 'Abgerechnet' : 'Offen'
+			];
+			rows.push(row.join(','));
+		}
+
+		const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `fairshare_export_${new Date().toISOString().split('T')[0]}.csv`;
+		link.click();
+		URL.revokeObjectURL(url);
 	}
 
 	$effect(() => {
@@ -599,6 +633,26 @@
 			<ShieldCheck class="h-5 w-5 text-slate-500" />
 			Sicherheit & Account
 		</h3>
+
+		<!-- Datenexport -->
+		<div class="space-y-3">
+			<h4 class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+				<Download class="h-4 w-4 text-slate-400" />
+				Datenexport
+			</h4>
+			<p class="text-xs text-slate-500">
+				Lade alle deine Transaktionen als CSV-Datei herunter.
+			</p>
+			<button
+				type="button"
+				onclick={handleExportCSV}
+				class="min-h-[48px] w-full rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+			>
+				Als CSV herunterladen
+			</button>
+		</div>
+
+		<div class="h-px bg-slate-100"></div>
 
 		<!-- E-Mail-Adresse ändern -->
 		<div class="space-y-3">

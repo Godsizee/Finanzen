@@ -6,6 +6,7 @@ import { authStore } from '$lib/features/auth/authStore.svelte';
 import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 import { recurringStore } from '$lib/features/recurring/store.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
+import { offlineStore } from '$lib/core/offlineStore.svelte';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
@@ -137,6 +138,12 @@ class TransactionStore {
 			this.transactions = this.transactions.map((tx) => (tx.id === tempId ? record : tx));
 			return record;
 		} catch (err: any) {
+			if (!navigator.onLine || err.status === 0 || err.isAbort) {
+				offlineStore.addAction({ type: 'CREATE_TX', payload: data });
+				toast.info('Offline gespeichert. Wird synchronisiert, sobald du wieder online bist.');
+				return optimisticRecord;
+			}
+
 			// Rollback
 			this.transactions = this.transactions.filter((tx) => tx.id !== tempId);
 			const appErr = handleAppError(err);
@@ -180,6 +187,12 @@ class TransactionStore {
 			toast.success('Transaktion aktualisiert!');
 			return record;
 		} catch (err: any) {
+			if (!navigator.onLine || err.status === 0 || err.isAbort) {
+				offlineStore.addAction({ type: 'UPDATE_TX', payload: { id, data } });
+				toast.info('Offline gespeichert. Wird synchronisiert, sobald du wieder online bist.');
+				return;
+			}
+
 			// Rollback
 			this.transactions = originalTxs;
 			const appErr = handleAppError(err);
@@ -197,6 +210,12 @@ class TransactionStore {
 			await transactionApi.delete(id);
 			toast.success('Transaktion gelöscht!');
 		} catch (err: any) {
+			if (!navigator.onLine || err.status === 0 || err.isAbort) {
+				offlineStore.addAction({ type: 'DELETE_TX', payload: { id } });
+				toast.info('Offline gespeichert. Wird synchronisiert, sobald du wieder online bist.');
+				return;
+			}
+
 			// Rollback
 			this.transactions = originalTxs;
 			const appErr = handleAppError(err);
