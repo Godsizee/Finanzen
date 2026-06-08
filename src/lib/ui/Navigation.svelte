@@ -15,19 +15,19 @@
 
 <!-- Mobile Bottom Navigation -->
 <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
-	<div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
+	<div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2 max-[340px]:px-1">
 		{#each links as link}
 			{#if link.isAction}
 				<a href={link.href}
-				   class="flex items-center justify-center -mt-8 w-14 h-14 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition-transform active:scale-95 z-10"
+				   class="flex items-center justify-center -mt-8 w-14 h-14 max-[340px]:w-11 max-[340px]:h-11 max-[340px]:-mt-6 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition-transform active:scale-95 z-10"
 				   aria-label={link.label}>
-					<link.icon size={28} />
+					<link.icon class="w-7 h-7 max-[340px]:w-5 max-[340px]:h-5" />
 				</a>
 			{:else}
 				<a href={link.href}
-				   class="flex flex-col items-center justify-center w-16 h-full text-[10px] transition-colors {currentPath === link.href ? 'text-emerald-600 font-medium' : 'text-slate-500 hover:text-slate-900'} active:scale-95"
+				   class="flex flex-col items-center justify-center w-16 max-[340px]:w-11 h-full text-[10px] max-[340px]:text-[8px] transition-colors {currentPath === link.href ? 'text-emerald-600 font-medium' : 'text-slate-500 hover:text-slate-900'} active:scale-95"
 				   aria-label={link.label}>
-					<link.icon size={24} class="mb-1" />
+					<link.icon class="w-6 h-6 max-[340px]:w-5 max-[340px]:h-5 mb-1" />
 					<span class="truncate w-full text-center">{link.label}</span>
 				</a>
 			{/if}

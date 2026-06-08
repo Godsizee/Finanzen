@@ -189,12 +189,12 @@
 	}
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
-	<header class="mb-8 flex items-center gap-4">
-		<button onclick={() => goto('/')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
-			<ArrowLeft size={24} class="text-slate-900" />
+<div class="p-4 pt-8 max-[340px]:p-2 max-[340px]:pt-6 h-full flex flex-col bg-slate-50">
+	<header class="mb-8 max-[340px]:mb-4 flex items-center gap-4 max-[340px]:gap-2">
+		<button onclick={() => goto('/')} class="p-2 -ml-2 max-[340px]:-ml-3 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
+			<ArrowLeft class="w-6 h-6 max-[340px]:w-5 max-[340px]:h-5 text-slate-900" />
 		</button>
-		<h1 class="text-xl font-bold tracking-tight text-slate-900">
+		<h1 class="text-xl font-bold tracking-tight text-slate-900 max-[340px]:text-lg">
 			{type === 'expense' ? 'Ausgabe hinzufügen' : 'Einzahlung hinzufügen'}
 		</h1>
 	</header>
@@ -266,18 +266,18 @@
 
 				{#if type === 'expense'}
 					<div class="flex flex-col gap-2">
-						<span class="text-sm font-medium text-slate-700">Kategorie</span>
-						<div class="grid grid-cols-3 gap-2">
+						<span class="text-sm font-medium text-slate-700 max-[340px]:text-xs">Kategorie</span>
+						<div class="grid grid-cols-3 gap-2 max-[340px]:gap-1">
 							{#each categoryStore.categories as cat (cat.id)}
 								{@const IconComponent = iconMap[cat.icon] || CircleEllipsis}
 								<button
 									type="button"
-									class="flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all min-h-[72px] active:scale-95
+									class="flex flex-col items-center justify-center p-3 max-[340px]:p-1.5 rounded-2xl max-[340px]:rounded-xl border text-center transition-all min-h-[72px] max-[340px]:min-h-[56px] active:scale-95
 										{selectedCategoryId === cat.id ? 'border-slate-900 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'}"
 									onclick={() => selectedCategoryId = cat.id}
 								>
-									<IconComponent size={20} class={selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'} />
-									<span class="text-[11px] font-semibold mt-1">{cat.name}</span>
+									<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4 {selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'}" />
+									<span class="text-[11px] max-[340px]:text-[8px] font-semibold mt-1 leading-tight">{cat.name}</span>
 								</button>
 							{/each}
 						</div>
@@ -288,11 +288,11 @@
 					<span class="text-sm font-medium text-slate-700">
 						{type === 'expense' ? 'Wer hat bezahlt?' : 'Wer zahlt ein?'}
 					</span>
-					<div class="flex gap-2">
+					<div class="flex gap-2 max-[340px]:gap-1">
 						<Button 
 							type="button" 
 							variant={payer === 'ich' ? 'primary' : 'secondary'} 
-							class="flex-1"
+							class="flex-1 max-[340px]:px-1 max-[340px]:text-xs max-[340px]:min-h-[40px]"
 							onclick={() => payer = 'ich'}
 						>
 							Ich
@@ -301,7 +301,7 @@
 						<Button 
 							type="button" 
 							variant={payer === 'partner' ? 'primary' : 'secondary'} 
-							class="flex-1"
+							class="flex-1 max-[340px]:px-1 max-[340px]:text-xs max-[340px]:min-h-[40px]"
 							onclick={() => payer = 'partner'}
 						>
 							Partner
@@ -311,7 +311,7 @@
 							<Button 
 								type="button" 
 								variant={payer === 'kasse' ? 'primary' : 'secondary'} 
-								class="flex-1"
+								class="flex-1 max-[340px]:px-1 max-[340px]:text-xs max-[340px]:min-h-[40px]"
 								onclick={() => payer = 'kasse'}
 							>
 								Kasse

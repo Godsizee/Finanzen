@@ -110,17 +110,17 @@
 	});
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col relative bg-slate-50">
+<div class="p-4 pt-8 max-[340px]:p-2 max-[340px]:pt-6 h-full flex flex-col relative bg-slate-50">
 	<header class="mb-6 px-1 flex justify-between items-center">
-		<div class="flex items-center gap-2">
-			<img src="/logo.svg" alt="FairShare Logo" class="w-8 h-8" />
-			<h1 class="text-xl font-bold tracking-tight text-slate-900">FairShare</h1>
+		<div class="flex items-center gap-2 max-[340px]:gap-1">
+			<img src="/logo.svg" alt="FairShare Logo" class="w-8 h-8 max-[340px]:w-7 max-[340px]:h-7" />
+			<h1 class="text-xl font-bold tracking-tight text-slate-900 max-[340px]:text-lg">FairShare</h1>
 		</div>
-		<div class="flex items-center gap-4">
-			<a href="/recurring" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+		<div class="flex items-center gap-4 max-[340px]:gap-2">
+			<a href="/recurring" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors max-[340px]:hidden">
 				Abos
 			</a>
-			<a href="/history" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors">
+			<a href="/history" class="text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors max-[340px]:hidden">
 				Historie
 			</a>
 			<a href="/profile" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors">
@@ -133,23 +133,23 @@
 		<HeroCard />
 
 		{#if monthlyBudget > 0}
-			<Card class="flex flex-col gap-3 p-4">
+			<Card class="flex flex-col gap-3 p-4 max-[340px]:p-3">
 				<div class="flex justify-between items-center">
 					<div class="flex items-center gap-2 text-slate-500">
-						<Coins size={18} />
-						<span class="text-xs font-semibold uppercase tracking-wider">Verfügbares Budget</span>
+						<Coins class="w-[18px] h-[18px] max-[340px]:w-3.5 max-[340px]:h-3.5" />
+						<span class="text-xs font-semibold uppercase tracking-wider max-[340px]:text-[10px]">Verfügbares Budget</span>
 					</div>
-					<span class="text-xs font-bold text-slate-400">
+					<span class="text-xs font-bold text-slate-400 max-[340px]:text-[9px]">
 						Monatsziel: {formatCurrency(monthlyBudget)}
 					</span>
 				</div>
 				
 				<div class="flex justify-between items-baseline">
-					<span class="text-2xl font-black tracking-tight {availableBudget >= 0 ? 'text-slate-900' : 'text-red-600'}">
+					<span class="text-2xl font-black tracking-tight {availableBudget >= 0 ? 'text-slate-900' : 'text-red-600'} max-[340px]:text-lg">
 						{formatCurrency(availableBudget)}
 					</span>
-					<span class="text-xs font-medium text-slate-500">
-						Ø {formatCurrency(dailyBudget)} / Tag ({remainingDays} Tage)
+					<span class="text-xs font-medium text-slate-500 max-[340px]:text-[10px]">
+						Ø {formatCurrency(dailyBudget)} / Tag
 					</span>
 				</div>
 
@@ -161,7 +161,7 @@
 						style="width: {percent}%"
 					></div>
 				</div>
-				<div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase">
+				<div class="flex justify-between text-[10px] text-slate-400 font-bold uppercase max-[340px]:text-[8px]">
 					<span>Verbraucht: {percent}%</span>
 					<span>Puffer inkl. Fixkosten</span>
 				</div>

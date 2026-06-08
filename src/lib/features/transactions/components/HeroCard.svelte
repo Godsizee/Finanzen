@@ -20,12 +20,12 @@
 	});
 </script>
 
-<div class="bg-slate-900 text-white rounded-3xl p-6 shadow-sm border border-slate-800 flex flex-col gap-4">
+<div class="bg-slate-900 text-white rounded-3xl p-6 max-[340px]:p-4 shadow-sm border border-slate-800 flex flex-col gap-4 max-[340px]:gap-3">
 	<div class="flex flex-col gap-1">
-		<span class="text-xs text-slate-400 font-semibold tracking-wider uppercase">
+		<span class="text-xs text-slate-400 font-semibold tracking-wider uppercase max-[340px]:text-[10px]">
 			Offener Ausgleich
 		</span>
-		<div class="text-2xl font-bold tracking-tight {isPositive ? 'text-emerald-400' : isNegative ? 'text-red-400' : 'text-slate-200'}">
+		<div class="text-2xl font-bold tracking-tight {isPositive ? 'text-emerald-400' : isNegative ? 'text-red-400' : 'text-slate-200'} max-[340px]:text-lg">
 			{#if isKasseMode}
 				{#if isPositive}
 					Dir fehlen {formatCurrency(balance)}.
@@ -44,7 +44,7 @@
 				{/if}
 			{/if}
 		</div>
-		<span class="text-xs {isPositive ? 'text-emerald-400/80' : isNegative ? 'text-red-400/80' : 'text-slate-400'} mt-1">
+		<span class="text-xs {isPositive ? 'text-emerald-400/80' : isNegative ? 'text-red-400/80' : 'text-slate-400'} mt-1 max-[340px]:text-[10px] max-[340px]:leading-tight">
 			{#if isKasseMode}
 				{#if isPositive}
 					Dein Partner müsste sie dir überweisen.
@@ -65,21 +65,21 @@
 		</span>
 	</div>
 	
-	<div class="h-px bg-slate-800 my-1"></div>
+	<div class="h-px bg-slate-800 my-1 max-[340px]:my-0"></div>
 	
-	<div class="grid grid-cols-2 gap-4">
+	<div class="grid grid-cols-2 gap-4 max-[340px]:gap-2">
 		<!-- Kassenstand -->
 		<div class="flex flex-col">
-			<span class="text-xs text-slate-400 font-medium">Gemeinsame Kasse</span>
-			<span class="font-semibold text-sm text-slate-200 mt-1">
+			<span class="text-xs text-slate-400 font-medium max-[340px]:text-[10px]">Gemeinsame Kasse</span>
+			<span class="font-semibold text-sm text-slate-200 mt-1 max-[340px]:text-xs">
 				{formatCurrency(kasseBalance)}
 			</span>
 		</div>
 		
 		<!-- Einkommen -->
 		<div class="flex flex-col text-right">
-			<span class="text-xs text-slate-400 font-medium">{isPartnerActive ? 'Einkommen' : 'Mein Einkommen'}</span>
-			<span class="font-semibold text-sm text-slate-200 mt-1">
+			<span class="text-xs text-slate-400 font-medium max-[340px]:text-[10px]">{isPartnerActive ? 'Einkommen' : 'Mein Einkommen'}</span>
+			<span class="font-semibold text-sm text-slate-200 mt-1 max-[340px]:text-xs">
 				{formatCurrency(totalIncome)}
 			</span>
 		</div>

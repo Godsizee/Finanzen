@@ -130,28 +130,28 @@
 	}
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
+<div class="p-4 pt-8 max-[340px]:p-2 max-[340px]:pt-6 h-full flex flex-col bg-slate-50">
 	<header class="mb-6 flex items-center justify-between">
-		<div class="flex items-center gap-4">
-			<button onclick={() => goto('/')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors">
-				<ArrowLeft size={24} class="text-slate-900" />
+		<div class="flex items-center gap-4 max-[340px]:gap-2">
+			<button onclick={() => goto('/')} class="p-2 -ml-2 max-[340px]:-ml-3 rounded-full hover:bg-slate-200 transition-colors">
+				<ArrowLeft class="w-6 h-6 max-[340px]:w-5 max-[340px]:h-5 text-slate-900" />
 			</button>
-			<h1 class="text-xl font-bold tracking-tight text-slate-900">Historie & Abrechnung</h1>
+			<h1 class="text-xl font-bold tracking-tight text-slate-900 max-[340px]:text-[15px]">Historie & Abrechnung</h1>
 		</div>
 	</header>
 
 	{#if unsettled.length > 0}
-		<Card class="bg-emerald-50 border-emerald-100 mb-6 p-5">
-			<h2 class="text-emerald-900 font-semibold mb-2">Offene Abrechnung</h2>
-			<p class="text-sm text-emerald-700 mb-4">Es gibt {unsettled.length} offene Transaktionen.</p>
+		<Card class="bg-emerald-50 border-emerald-100 mb-6 p-5 max-[340px]:p-3">
+			<h2 class="text-emerald-900 font-semibold mb-2 max-[340px]:text-sm">Offene Abrechnung</h2>
+			<p class="text-sm text-emerald-700 mb-4 max-[340px]:text-xs max-[340px]:mb-3">Es gibt {unsettled.length} offene Transaktionen.</p>
 			
-			<div class="flex items-center justify-between mb-4">
-				<span class="text-emerald-900 font-medium text-sm">Ausgleichsbetrag:</span>
-				<span class="text-emerald-900 font-bold text-lg">{formatCurrency(Math.abs(myBalance))}</span>
+			<div class="flex items-center justify-between mb-4 max-[340px]:mb-3">
+				<span class="text-emerald-900 font-medium text-sm max-[340px]:text-xs">Ausgleichsbetrag:</span>
+				<span class="text-emerald-900 font-bold text-lg max-[340px]:text-base">{formatCurrency(Math.abs(myBalance))}</span>
 			</div>
 			
-			<Button onclick={handleSettleClick} class="w-full" variant="primary">
-				<CheckCircle2 size={18} class="mr-2" />
+			<Button onclick={handleSettleClick} class="w-full max-[340px]:min-h-[40px] max-[340px]:text-xs" variant="primary">
+				<CheckCircle2 class="w-[18px] h-[18px] max-[340px]:w-4 max-[340px]:h-4 mr-2" />
 				{loading ? 'Rechne ab...' : 'Jetzt abrechnen'}
 			</Button>
 		</Card>
@@ -179,11 +179,11 @@
 		</div>
 
 		{#if showFilters}
-			<div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
+			<div class="grid grid-cols-3 max-[340px]:grid-cols-1 gap-2 max-[340px]:gap-1.5 pt-2 border-t border-slate-100 animate-in fade-in slide-in-from-top-2 duration-200">
 				<!-- Category Filter -->
 				<div class="flex flex-col gap-1">
-					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Kategorie</span>
-					<select bind:value={selectedCategory} class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider max-[340px]:text-[9px]">Kategorie</span>
+					<select bind:value={selectedCategory} class="p-2 max-[340px]:py-1 max-[340px]:px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs max-[340px]:text-[11px] focus:outline-none">
 						<option value="">Alle</option>
 						{#each categoryStore.categories as cat}
 							<option value={cat.id}>{cat.name}</option>
@@ -193,8 +193,8 @@
 
 				<!-- Payer Filter -->
 				<div class="flex flex-col gap-1">
-					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Zahler</span>
-					<select bind:value={selectedPayer} class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider max-[340px]:text-[9px]">Zahler</span>
+					<select bind:value={selectedPayer} class="p-2 max-[340px]:py-1 max-[340px]:px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs max-[340px]:text-[11px] focus:outline-none">
 						<option value="">Alle</option>
 						<option value="ich">Ich</option>
 						{#if partnerStore.partnerStatus === 'active'}
@@ -206,8 +206,8 @@
 
 				<!-- Split Filter -->
 				<div class="flex flex-col gap-1">
-					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Aufteilung</span>
-					<select bind:value={selectedSplit} class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none">
+					<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider max-[340px]:text-[9px]">Aufteilung</span>
+					<select bind:value={selectedSplit} class="p-2 max-[340px]:py-1 max-[340px]:px-2 bg-slate-50 border border-slate-200 rounded-lg text-xs max-[340px]:text-[11px] focus:outline-none">
 						<option value="">Alle</option>
 						<option value="50_50">50:50</option>
 						<option value="fair">Fair (Einkommen)</option>
@@ -231,17 +231,17 @@
 	<div class="flex bg-slate-200 p-1 rounded-xl mb-4">
 		<button 
 			type="button"
-			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {activeTab === 'offen' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			class="flex-1 py-2 max-[340px]:py-1.5 text-sm max-[340px]:text-xs font-semibold rounded-lg transition-all {activeTab === 'offen' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
 			onclick={() => activeTab = 'offen'}
 		>
 			Offen ({filteredUnsettled.length})
 		</button>
 		<button 
 			type="button"
-			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {activeTab === 'abgerechnet' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			class="flex-1 py-2 max-[340px]:py-1.5 text-sm max-[340px]:text-xs font-semibold rounded-lg transition-all {activeTab === 'abgerechnet' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
 			onclick={() => activeTab = 'abgerechnet'}
 		>
-			Abgerechnet ({filteredSettled.length})
+			Abgesp. ({filteredSettled.length})
 		</button>
 	</div>
 

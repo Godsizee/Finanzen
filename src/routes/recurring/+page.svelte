@@ -93,13 +93,13 @@
 	}
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
+<div class="p-4 pt-8 max-[340px]:p-2 max-[340px]:pt-6 h-full flex flex-col bg-slate-50">
 	<header class="mb-6 flex items-center justify-between">
-		<div class="flex items-center gap-4">
-			<button onclick={() => goto('/')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors">
-				<ArrowLeft size={24} class="text-slate-900" />
+		<div class="flex items-center gap-4 max-[340px]:gap-2">
+			<button onclick={() => goto('/')} class="p-2 -ml-2 max-[340px]:-ml-3 rounded-full hover:bg-slate-200 transition-colors">
+				<ArrowLeft class="w-6 h-6 max-[340px]:w-5 max-[340px]:h-5 text-slate-900" />
 			</button>
-			<h1 class="text-xl font-bold tracking-tight text-slate-900">Wiederkehrende Ausgaben</h1>
+			<h1 class="text-xl font-bold tracking-tight text-slate-900 max-[340px]:text-sm">Wiederkehrende Ausgaben</h1>
 		</div>
 	</header>
 
@@ -130,30 +130,30 @@
 						{@const IconComponent = cat ? iconMap[cat.icon] : CalendarDays}
 						{@const colorClasses = (cat && colorMap[cat.color]) || 'bg-slate-100 text-slate-600'}
 						
-						<Card class="flex flex-col gap-3 p-4 transition-all relative {rule.active ? 'border-slate-200' : 'opacity-65 border-dashed bg-slate-50'}">
-							<div class="flex items-center gap-3">
-								<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-									<IconComponent size={20} />
+						<Card class="flex flex-col gap-3 max-[340px]:gap-2 p-4 max-[340px]:p-2.5 transition-all relative {rule.active ? 'border-slate-200' : 'opacity-65 border-dashed bg-slate-50'}">
+							<div class="flex items-center gap-3 max-[340px]:gap-2">
+								<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
+									<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 								</div>
 								
 								<div class="flex-1 min-w-0">
-									<div class="flex items-center gap-2">
-										<h3 class="font-bold text-slate-900 truncate">{rule.name}</h3>
-										<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">
+									<div class="flex items-center gap-2 max-[340px]:gap-1">
+										<h3 class="font-bold text-slate-900 text-sm max-[340px]:text-xs truncate">{rule.name}</h3>
+										<span class="inline-flex items-center px-1.5 py-0.5 max-[340px]:px-1 max-[340px]:py-0 rounded-md text-[10px] max-[340px]:text-[8px] font-semibold bg-slate-100 text-slate-700">
 											{getFrequencyLabel(rule.frequency)}
 										</span>
 									</div>
-									<p class="text-xs text-slate-500 mt-0.5">
+									<p class="text-xs max-[340px]:text-[9px] text-slate-500 mt-0.5">
 										Bezahlt von: {rule.paid_by === authStore.currentUser?.id ? 'Ich' : (partnerStore.partnerUser?.username || 'Partner')} • 
 										Split: {rule.split_mode === '50_50' ? '50/50' : 'Kasse'}
 									</p>
 								</div>
 
 								<div class="text-right shrink-0">
-									<span class="font-bold text-slate-900 text-base">
+									<span class="font-bold text-slate-900 text-base max-[340px]:text-xs">
 										{formatCurrency(rule.amount)}
 									</span>
-									<p class="text-[10px] text-slate-400 mt-0.5">
+									<p class="text-[10px] max-[340px]:text-[8px] text-slate-400 mt-0.5">
 										Tag {rule.day_of_month}. des Monats
 									</p>
 								</div>
@@ -162,7 +162,7 @@
 							<div class="h-px bg-slate-100"></div>
 
 							<div class="flex items-center justify-between text-xs pt-1">
-								<span class="text-slate-400 text-[10px]">
+								<span class="text-slate-400 text-[10px] max-[340px]:text-[8px]">
 									{#if rule.last_generated}
 										Zuletzt generiert: {new Date(rule.last_generated).toLocaleDateString('de-DE')}
 									{:else}
@@ -170,18 +170,18 @@
 									{/if}
 								</span>
 
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-2 max-[340px]:gap-1">
 									<button 
 										onclick={() => toggleActive(rule)} 
-										class="p-1.5 rounded-md text-slate-500 hover:bg-slate-100 transition-colors flex items-center gap-1.5 active:scale-95"
+										class="p-1.5 max-[340px]:p-1 rounded-md text-slate-500 hover:bg-slate-100 transition-colors flex items-center gap-1.5 max-[340px]:gap-1 active:scale-95"
 										title={rule.active ? 'Pausieren' : 'Aktivieren'}
 									>
 										{#if rule.active}
-											<Pause size={14} class="text-amber-500" />
-											<span class="text-[10px] font-semibold text-amber-500">Pausieren</span>
+											<Pause class="w-3.5 h-3.5 max-[340px]:w-3 max-[340px]:h-3 text-amber-500" />
+											<span class="text-[10px] max-[340px]:text-[8px] font-semibold text-amber-500">Pausieren</span>
 										{:else}
-											<Play size={14} class="text-emerald-500" />
-											<span class="text-[10px] font-semibold text-emerald-500">Aktivieren</span>
+											<Play class="w-3.5 h-3.5 max-[340px]:w-3 max-[340px]:h-3 text-emerald-500" />
+											<span class="text-[10px] max-[340px]:text-[8px] font-semibold text-emerald-500">Aktivieren</span>
 										{/if}
 									</button>
 

@@ -65,26 +65,26 @@
 
 		{#if !tx.settlement_id}
 			<a href="/edit/{tx.id}" class="block active:scale-[0.98] transition-transform">
-				<Card class="flex items-center gap-4 p-4 hover:border-slate-200 transition-all cursor-pointer">
-					<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-						<IconComponent size={20} />
+				<Card class="flex items-center gap-4 max-[340px]:gap-2 p-4 max-[340px]:p-3 hover:border-slate-200 transition-all cursor-pointer">
+					<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
+						<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 					</div>
 					<div class="flex-1 flex flex-col min-w-0">
-						<div class="flex items-center gap-2">
-							<span class="font-medium text-slate-900 truncate">
+						<div class="flex items-center gap-2 max-[340px]:gap-1">
+							<span class="font-medium text-slate-900 text-sm max-[340px]:text-xs truncate">
 								{tx.note || 'Ausgabe'}
 							</span>
 							{#if tx.split_mode === 'kasse'}
-								<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">
+								<span class="inline-flex items-center px-1.5 py-0.5 max-[340px]:px-1 max-[340px]:py-0 rounded-md text-[10px] max-[340px]:text-[9px] font-semibold bg-slate-100 text-slate-700">
 									Kasse
 								</span>
 							{:else if tx.split_mode === 'deposit'}
-								<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+								<span class="inline-flex items-center px-1.5 py-0.5 max-[340px]:px-1 max-[340px]:py-0 rounded-md text-[10px] max-[340px]:text-[9px] font-semibold bg-emerald-100 text-emerald-800">
 									Einzahlung
 								</span>
 							{/if}
 						</div>
-						<span class="text-xs text-slate-500 mt-0.5">
+						<span class="text-xs max-[340px]:text-[10px] text-slate-500 mt-0.5">
 							{new Date(tx.date).toLocaleDateString('de-DE')} • 
 							{#if tx.split_mode === 'kasse'}
 								aus Kasse bezahlt
@@ -95,37 +95,37 @@
 							{/if}
 						</span>
 					</div>
-					<div class="font-semibold {tx.split_mode === 'deposit' ? 'text-emerald-600' : 'text-slate-900'}">
+					<div class="font-semibold text-sm max-[340px]:text-xs {tx.split_mode === 'deposit' ? 'text-emerald-600' : 'text-slate-900'}">
 						{tx.split_mode === 'deposit' ? '+' : ''}{formatCurrency(tx.total_amount)}
 					</div>
 				</Card>
 			</a>
 		{:else}
 			<div class="opacity-60">
-				<Card class="flex items-center gap-4 p-4 bg-slate-50 border-dashed">
-					<div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-						<IconComponent size={20} />
+				<Card class="flex items-center gap-4 max-[340px]:gap-2 p-4 max-[340px]:p-3 bg-slate-50 border-dashed">
+					<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
+						<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 					</div>
 					<div class="flex-1 flex flex-col min-w-0">
-						<div class="flex items-center gap-2">
-							<span class="font-medium text-slate-900 truncate">
+						<div class="flex items-center gap-2 max-[340px]:gap-1">
+							<span class="font-medium text-slate-900 text-sm max-[340px]:text-xs truncate">
 								{tx.note || 'Ausgabe'}
 							</span>
 							{#if tx.split_mode === 'kasse'}
-								<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">
+								<span class="inline-flex items-center px-1.5 py-0.5 max-[340px]:px-1 max-[340px]:py-0 rounded-md text-[10px] max-[340px]:text-[9px] font-semibold bg-slate-100 text-slate-700">
 									Kasse
 								</span>
 							{:else if tx.split_mode === 'deposit'}
-								<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+								<span class="inline-flex items-center px-1.5 py-0.5 max-[340px]:px-1 max-[340px]:py-0 rounded-md text-[10px] max-[340px]:text-[9px] font-semibold bg-emerald-100 text-emerald-800">
 									Einzahlung
 								</span>
 							{/if}
 						</div>
-						<span class="text-xs text-slate-500 mt-0.5">
+						<span class="text-xs max-[340px]:text-[10px] text-slate-500 mt-0.5">
 							{new Date(tx.date).toLocaleDateString('de-DE')} • abgerechnet
 						</span>
 					</div>
-					<div class="font-semibold text-slate-500">
+					<div class="font-semibold text-sm max-[340px]:text-xs text-slate-500">
 						{formatCurrency(tx.total_amount)}
 					</div>
 				</Card>
