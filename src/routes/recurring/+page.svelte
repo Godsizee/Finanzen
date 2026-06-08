@@ -133,7 +133,7 @@
 						<Card class="flex flex-col gap-3 max-[340px]:gap-2 p-4 max-[340px]:p-2.5 transition-all relative {rule.active ? 'border-slate-200' : 'opacity-65 border-dashed bg-slate-50'}">
 							<div class="flex items-center gap-3 max-[340px]:gap-2">
 								<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-									<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
+									<svelte:component this={IconComponent} class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 								</div>
 								
 								<div class="flex-1 min-w-0">

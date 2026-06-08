@@ -67,7 +67,7 @@
 			<a href="/edit/{tx.id}" class="block active:scale-[0.98] transition-transform">
 				<Card class="flex items-center gap-4 max-[340px]:gap-2 p-4 max-[340px]:p-3 hover:border-slate-200 transition-all cursor-pointer">
 					<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-						<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
+						<svelte:component this={IconComponent} class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 					</div>
 					<div class="flex-1 flex flex-col min-w-0">
 						<div class="flex items-center gap-2 max-[340px]:gap-1">
@@ -104,7 +104,7 @@
 			<div class="opacity-60">
 				<Card class="flex items-center gap-4 max-[340px]:gap-2 p-4 max-[340px]:p-3 bg-slate-50 border-dashed">
 					<div class="w-10 h-10 max-[340px]:w-8 max-[340px]:h-8 rounded-full flex items-center justify-center shrink-0 {colorClasses}">
-						<IconComponent class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
+						<svelte:component this={IconComponent} class="w-5 h-5 max-[340px]:w-4 max-[340px]:h-4" />
 					</div>
 					<div class="flex-1 flex flex-col min-w-0">
 						<div class="flex items-center gap-2 max-[340px]:gap-1">
