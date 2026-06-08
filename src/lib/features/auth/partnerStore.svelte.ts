@@ -9,7 +9,7 @@ class PartnerStore {
 
 	async loadPartnerStatus() {
 		if (!authStore.isLoggedIn || !authStore.currentUser) return;
-		
+
 		const me = authStore.currentUser;
 		const myPartnerId = me.partner;
 
@@ -18,7 +18,7 @@ class PartnerStore {
 				// Ich habe jemanden als Partner eingetragen. Hat er mich auch eingetragen?
 				const p = await pb.collection('users').getOne(myPartnerId);
 				this.partnerUser = p;
-				
+
 				if (p.partner === me.id) {
 					this.partnerStatus = 'active';
 				} else {
@@ -29,7 +29,7 @@ class PartnerStore {
 				const records = await pb.collection('users').getList(1, 1, {
 					filter: pb.filter('partner = {:meId}', { meId: me.id })
 				});
-				
+
 				if (records.items.length > 0) {
 					this.partnerUser = records.items[0];
 					this.partnerStatus = 'pending_received';
@@ -39,14 +39,16 @@ class PartnerStore {
 				}
 			}
 		} catch (err: any) {
-			console.error("Fehler beim Laden des Partner-Status", err);
+			console.error('Fehler beim Laden des Partner-Status', err);
 		}
 	}
 
 	async searchByEmail(email: string): Promise<RecordModel | null> {
 		if (!email) return null;
 		try {
-			const res = await pb.collection('users').getFirstListItem(pb.filter('email = {:email}', { email }));
+			const res = await pb
+				.collection('users')
+				.getFirstListItem(pb.filter('email = {:email}', { email }));
 			if (res.id === authStore.currentUser?.id) {
 				toast.error('Du kannst dich nicht selbst einladen!');
 				return null;
@@ -104,8 +106,10 @@ class PartnerStore {
 		try {
 			// Wir müssen es bei beiden auf null setzen. Da wir das Recht dazu haben (Update Rule):
 			await pb.collection('users').update(this.partnerUser.id, { partner: null });
-			const updatedMe = await pb.collection('users').update(authStore.currentUser.id, { partner: null });
-			
+			const updatedMe = await pb
+				.collection('users')
+				.update(authStore.currentUser.id, { partner: null });
+
 			authStore.currentUser = updatedMe;
 			toast.info('Verpartnerung aufgehoben.');
 			await this.loadPartnerStatus();

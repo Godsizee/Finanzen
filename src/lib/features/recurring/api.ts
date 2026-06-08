@@ -37,7 +37,7 @@ export const recurringApi = {
 	async delete(id: string): Promise<boolean> {
 		return await pb.collection('recurring_expenses').delete(id);
 	},
-	
+
 	subscribe(callback: (e: any) => void) {
 		pb.collection('recurring_expenses').subscribe('*', callback);
 		return () => {

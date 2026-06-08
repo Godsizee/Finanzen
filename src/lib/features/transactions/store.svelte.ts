@@ -28,10 +28,18 @@ class TransactionStore {
 		});
 	}
 
-	unsettledTransactions = $derived(this.transactions.filter(tx => !tx.settlement_id));
-	
-	kasseDeposits = $derived(this.transactions.filter(tx => tx.split_mode === 'deposit').reduce((acc, tx) => acc + tx.total_amount, 0));
-	kasseExpenses = $derived(this.transactions.filter(tx => tx.split_mode === 'kasse').reduce((acc, tx) => acc + tx.total_amount, 0));
+	unsettledTransactions = $derived(this.transactions.filter((tx) => !tx.settlement_id));
+
+	kasseDeposits = $derived(
+		this.transactions
+			.filter((tx) => tx.split_mode === 'deposit')
+			.reduce((acc, tx) => acc + tx.total_amount, 0)
+	);
+	kasseExpenses = $derived(
+		this.transactions
+			.filter((tx) => tx.split_mode === 'kasse')
+			.reduce((acc, tx) => acc + tx.total_amount, 0)
+	);
 	kasseBalance = $derived(this.kasseDeposits - this.kasseExpenses);
 
 	// Derived states for balances based ONLY on unsettled transactions
@@ -42,7 +50,10 @@ class TransactionStore {
 	fairSharingRatio = $derived.by(() => {
 		if (!this.fairSharingActive) return 0.5;
 		const currentUser = authStore.currentUser;
-		if (currentUser?.cost_sharing_mode === 'split' && typeof currentUser.cost_sharing_percent === 'number') {
+		if (
+			currentUser?.cost_sharing_mode === 'split' &&
+			typeof currentUser.cost_sharing_percent === 'number'
+		) {
 			return currentUser.cost_sharing_percent / 100;
 		}
 		return 0.5;
@@ -52,17 +63,17 @@ class TransactionStore {
 		if (!this.fairSharingActive) return 0;
 		const myId = authStore.currentUser?.id;
 		if (!myId) return 0;
-		
+
 		const ratioA = this.fairSharingRatio;
-		
+
 		return this.unsettledTransactions.reduce((acc, tx) => {
 			if (tx.split_mode === 'kasse') return acc;
-			
+
 			const totalAmount = tx.total_amount;
 			const didIPay = tx.paid_by === myId;
 			const myShare = Math.round(totalAmount * ratioA);
 			const myContribution = didIPay ? totalAmount : 0;
-			
+
 			return acc + (myContribution - myShare);
 		}, 0);
 	});
@@ -71,24 +82,24 @@ class TransactionStore {
 		const currentUser = authStore.currentUser;
 		const myId = currentUser?.id;
 		if (!myId) return 0;
-		
+
 		const mode = currentUser?.cost_sharing_mode || 'kasse';
 
 		if (mode === 'kasse') {
 			const myIncome = currentUser.income || 0;
 			const partnerIncome = partnerStore.partnerUser?.income || 0;
-			
+
 			const myExpenses = this.unsettledTransactions
-				.filter(tx => tx.paid_by === myId && tx.split_mode !== 'deposit')
+				.filter((tx) => tx.paid_by === myId && tx.split_mode !== 'deposit')
 				.reduce((acc, tx) => acc + tx.total_amount, 0);
-				
+
 			const partnerExpenses = this.unsettledTransactions
-				.filter(tx => tx.paid_by !== myId && tx.split_mode !== 'deposit')
+				.filter((tx) => tx.paid_by !== myId && tx.split_mode !== 'deposit')
 				.reduce((acc, tx) => acc + tx.total_amount, 0);
-				
+
 			const myBalanceCents = myIncome - myExpenses;
 			const partnerBalanceCents = partnerIncome - partnerExpenses;
-			
+
 			if (myBalanceCents < 0) {
 				return Math.abs(myBalanceCents);
 			} else if (partnerBalanceCents < 0) {
@@ -100,12 +111,12 @@ class TransactionStore {
 
 		return this.unsettledTransactions.reduce((acc, tx) => {
 			if (tx.split_mode === 'kasse') return acc;
-			
+
 			const totalAmount = tx.total_amount;
 			const didIPay = tx.paid_by === myId;
-			
+
 			let myShare = Math.round(totalAmount / 2); // Default 50_50
-			
+
 			if (tx.split_mode === 'fair' && this.fairSharingActive) {
 				const ratio = this.fairSharingRatio;
 				myShare = Math.round(totalAmount * ratio);
@@ -127,7 +138,7 @@ class TransactionStore {
 			} else if (tx.split_mode === 'deposit') {
 				myShare = Math.round(totalAmount / 2);
 			}
-			
+
 			const myContribution = didIPay ? totalAmount : 0;
 			return acc + (myContribution - myShare);
 		}, 0);
@@ -143,7 +154,7 @@ class TransactionStore {
 			} catch (reErr) {
 				console.error('Error generating recurring transactions:', reErr);
 			}
-			
+
 			this.transactions = await transactionApi.getAll();
 			this.initRealtime();
 		} catch (err: any) {
@@ -176,16 +187,16 @@ class TransactionStore {
 		// Update all currently unsettled transactions locally for instant feedback
 		const unsettled = this.unsettledTransactions;
 		const originalTxs = [...this.transactions];
-		
-		this.transactions = this.transactions.map(tx => 
-			!tx.settlement_id ? { ...tx, settlement_id: settlementId } as RecordModel : tx
+
+		this.transactions = this.transactions.map((tx) =>
+			!tx.settlement_id ? ({ ...tx, settlement_id: settlementId } as RecordModel) : tx
 		);
 
 		try {
 			// Update in background
-			await Promise.all(unsettled.map(tx => 
-				transactionApi.update(tx.id, { settlement_id: settlementId })
-			));
+			await Promise.all(
+				unsettled.map((tx) => transactionApi.update(tx.id, { settlement_id: settlementId }))
+			);
 		} catch (err: any) {
 			// Rollback
 			this.transactions = originalTxs;
@@ -197,12 +208,14 @@ class TransactionStore {
 	async updateTransaction(id: string, data: Partial<TransactionCreate>) {
 		const originalTxs = [...this.transactions];
 		// Optimistic update
-		this.transactions = this.transactions.map(tx => tx.id === id ? { ...tx, ...data } as unknown as RecordModel : tx);
+		this.transactions = this.transactions.map((tx) =>
+			tx.id === id ? ({ ...tx, ...data } as unknown as RecordModel) : tx
+		);
 
 		try {
 			const record = await transactionApi.update(id, data);
 			// Replace with actual updated record
-			this.transactions = this.transactions.map(tx => tx.id === id ? record : tx);
+			this.transactions = this.transactions.map((tx) => (tx.id === id ? record : tx));
 			toast.success('Transaktion aktualisiert!');
 		} catch (err: any) {
 			// Rollback
@@ -215,7 +228,7 @@ class TransactionStore {
 	async deleteTransaction(id: string) {
 		const originalTxs = [...this.transactions];
 		// Optimistic update
-		this.transactions = this.transactions.filter(tx => tx.id !== id);
+		this.transactions = this.transactions.filter((tx) => tx.id !== id);
 
 		try {
 			await transactionApi.delete(id);

@@ -40,6 +40,6 @@
 		{max}
 		{step}
 		bind:value
-		class="min-h-[48px] px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+		class="min-h-[48px] rounded-xl border border-slate-200 bg-slate-50 px-4 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 focus:outline-none"
 	/>
 </label>

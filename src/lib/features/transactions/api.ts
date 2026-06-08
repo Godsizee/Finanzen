@@ -25,7 +25,10 @@ export const transactionApi = {
 		});
 	},
 
-	async update(id: string, data: Partial<TransactionCreate & { settlement_id: string | null }>): Promise<RecordModel> {
+	async update(
+		id: string,
+		data: Partial<TransactionCreate & { settlement_id: string | null }>
+	): Promise<RecordModel> {
 		return await pb.collection('transactions').update(id, data, {
 			expand: 'category'
 		});
@@ -34,7 +37,7 @@ export const transactionApi = {
 	async delete(id: string): Promise<boolean> {
 		return await pb.collection('transactions').delete(id);
 	},
-	
+
 	subscribe(callback: (e: any) => void) {
 		pb.collection('transactions').subscribe('*', callback);
 		return () => {

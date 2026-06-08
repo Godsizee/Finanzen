@@ -22,12 +22,12 @@
 				await pb.collection('users').confirmVerification(token);
 				success = true;
 				toast.success('E-Mail erfolgreich verifiziert!');
-				
+
 				// Refresh auth if logged in
 				if (authStore.isLoggedIn) {
 					await pb.collection('users').authRefresh();
 				}
-				
+
 				setTimeout(() => {
 					goto('/');
 				}, 2000);
@@ -73,29 +73,33 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center min-h-[80vh] p-4 bg-slate-50">
-	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
+<div class="flex min-h-[80vh] flex-col items-center justify-center bg-slate-50 p-4">
+	<div class="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm">
 		{#if token}
 			<!-- Verifikations-Flow über Token -->
-			<div class="text-center space-y-4">
+			<div class="space-y-4 text-center">
 				{#if verifying}
-					<div class="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full animate-spin">
-						<RefreshCw class="w-6 h-6 text-slate-900" />
+					<div
+						class="inline-flex h-12 w-12 animate-spin items-center justify-center rounded-full bg-slate-100"
+					>
+						<RefreshCw class="h-6 w-6 text-slate-900" />
 					</div>
 					<h1 class="text-2xl font-bold text-slate-900">E-Mail wird verifiziert</h1>
 					<p class="text-slate-500">Bitte gedulde dich einen kurzen Moment...</p>
 				{:else if success}
-					<div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-full">
-						<CheckCircle class="w-6 h-6 text-emerald-600" />
+					<div
+						class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100"
+					>
+						<CheckCircle class="h-6 w-6 text-emerald-600" />
 					</div>
 					<h1 class="text-2xl font-bold text-slate-900">Erfolgreich verifiziert!</h1>
 					<p class="text-slate-500">Du wirst sofort weitergeleitet...</p>
 					<Button onclick={() => goto('/')} variant="primary" class="w-full">
-						Direkt zur App <ArrowRight class="ml-2 w-4 h-4" />
+						Direkt zur App <ArrowRight class="ml-2 h-4 w-4" />
 					</Button>
 				{:else}
-					<div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
-						<AlertTriangle class="w-6 h-6 text-red-600" />
+					<div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+						<AlertTriangle class="h-6 w-6 text-red-600" />
 					</div>
 					<h1 class="text-2xl font-bold text-slate-900">Verifikation fehlgeschlagen</h1>
 					<p class="text-slate-500">{errorMsg}</p>
@@ -106,28 +110,30 @@
 			</div>
 		{:else}
 			<!-- Info-Screen für unbestätigte Nutzer -->
-			<div class="text-center space-y-3">
-				<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
+			<div class="space-y-3 text-center">
+				<img src="/logo.svg" alt="FairShare Logo" class="mx-auto mb-2 h-16 w-16" />
 				<h1 class="text-2xl font-bold text-slate-900">E-Mail bestätigen</h1>
-				<p class="text-slate-500 text-sm">
-					Bitte bestätige deine E-Mail-Adresse unter <strong class="text-slate-800">{authStore.currentUser?.email}</strong>, um FairShare zu nutzen.
+				<p class="text-sm text-slate-500">
+					Bitte bestätige deine E-Mail-Adresse unter <strong class="text-slate-800"
+						>{authStore.currentUser?.email}</strong
+					>, um FairShare zu nutzen.
 				</p>
 			</div>
 
 			<div class="space-y-3 pt-2">
 				<Button
 					variant="primary"
-					class="w-full h-12 flex justify-center items-center gap-2"
+					class="flex h-12 w-full items-center justify-center gap-2"
 					onclick={handleRefresh}
 				>
-					<RefreshCw class="w-4 h-4" />
+					<RefreshCw class="h-4 w-4" />
 					Ich habe die E-Mail bestätigt
 				</Button>
 
 				<Button
 					variant="secondary"
 					disabled={resending}
-					class="w-full h-12 flex justify-center items-center gap-2"
+					class="flex h-12 w-full items-center justify-center gap-2"
 					onclick={handleResend}
 				>
 					{resending ? 'Wird gesendet...' : 'E-Mail erneut senden'}
@@ -135,9 +141,9 @@
 
 				<button
 					onclick={handleLogout}
-					class="w-full py-3 text-sm font-medium text-slate-500 hover:text-slate-900 flex justify-center items-center gap-2 rounded-xl transition-colors min-h-[48px]"
+					class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
 				>
-					<LogOut class="w-4 h-4" />
+					<LogOut class="h-4 w-4" />
 					Abmelden
 				</button>
 			</div>

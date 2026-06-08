@@ -28,10 +28,10 @@ class RecurringStore {
 			const record = await recurringApi.create(data);
 			this.expenses = [record, ...this.expenses];
 			toast.success('Wiederkehrende Ausgabe angelegt');
-			
+
 			// Trigger generation immediately for new rule
 			await this.generateDueTransactions();
-			
+
 			return record;
 		} catch (err: any) {
 			handleAppError(err);
@@ -44,10 +44,10 @@ class RecurringStore {
 			const record = await recurringApi.update(id, data);
 			this.expenses = this.expenses.map((e) => (e.id === id ? record : e));
 			toast.success('Wiederkehrende Ausgabe aktualisiert');
-			
+
 			// Trigger generation in case active state or dates changed
 			await this.generateDueTransactions();
-			
+
 			return record;
 		} catch (err: any) {
 			handleAppError(err);
@@ -67,7 +67,12 @@ class RecurringStore {
 	}
 
 	// Calculate due dates for a single recurring expense rule
-	getDueDates(startDateStr: string, dayOfMonth: number, frequency: string, lastGeneratedStr: string | null): Date[] {
+	getDueDates(
+		startDateStr: string,
+		dayOfMonth: number,
+		frequency: string,
+		lastGeneratedStr: string | null
+	): Date[] {
 		const start = new Date(startDateStr);
 		start.setUTCHours(12, 0, 0, 0);
 
@@ -76,7 +81,7 @@ class RecurringStore {
 			const lastGen = new Date(lastGeneratedStr);
 			lastGen.setUTCHours(12, 0, 0, 0);
 			current = new Date(lastGen);
-			
+
 			if (frequency === 'monthly') {
 				current.setUTCMonth(current.getUTCMonth() + 1);
 			} else if (frequency === 'quarterly') {
@@ -85,14 +90,14 @@ class RecurringStore {
 				current.setUTCFullYear(current.getUTCFullYear() + 1);
 			}
 		}
-		
+
 		current.setUTCDate(dayOfMonth);
 
 		const today = new Date();
 		today.setHours(12, 0, 0, 0);
 
 		const dueDates: Date[] = [];
-		
+
 		if (current < start) {
 			if (frequency === 'monthly') {
 				current.setUTCMonth(current.getUTCMonth() + 1);
@@ -105,7 +110,7 @@ class RecurringStore {
 
 		while (current <= today) {
 			dueDates.push(new Date(current));
-			
+
 			if (frequency === 'monthly') {
 				current.setUTCMonth(current.getUTCMonth() + 1);
 			} else if (frequency === 'quarterly') {
@@ -114,7 +119,7 @@ class RecurringStore {
 				current.setUTCFullYear(current.getUTCFullYear() + 1);
 			}
 		}
-		
+
 		return dueDates;
 	}
 
@@ -122,13 +127,13 @@ class RecurringStore {
 	async generateDueTransactions() {
 		if (this.generating) return;
 		this.generating = true;
-		
+
 		try {
 			// Reload rules to make sure we have the latest state
 			const rules = await recurringApi.getAll();
 			this.expenses = rules;
 
-			const activeRules = rules.filter(r => r.active);
+			const activeRules = rules.filter((r) => r.active);
 			let generatedCount = 0;
 
 			for (const rule of activeRules) {
@@ -140,13 +145,13 @@ class RecurringStore {
 				);
 
 				if (dueDates.length === 0) continue;
-				
+
 				let latestDateStr = rule.last_generated;
 
 				for (const dueDate of dueDates) {
 					// Format date to PocketBase format: YYYY-MM-DD 12:00:00
 					const formattedDate = dueDate.toISOString().slice(0, 10) + ' 12:00:00';
-					
+
 					// Create transaction
 					await transactionApi.create({
 						total_amount: rule.amount,
@@ -168,11 +173,9 @@ class RecurringStore {
 					});
 				}
 			}
-
-
 		} catch (err: any) {
 			console.error('Fehler bei der automatischen Generierung:', err);
-			const details = err.response?.data ? JSON.stringify(err.response.data) : (err.message || err);
+			const details = err.response?.data ? JSON.stringify(err.response.data) : err.message || err;
 			toast.error('Generierungsfehler: ' + details);
 		} finally {
 			this.generating = false;

@@ -10,15 +10,17 @@
 	} = $props();
 </script>
 
-<div class="flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-2xl animate-pulse {className}">
+<div
+	class="flex animate-pulse items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 {className}"
+>
 	{#if hasIcon}
-		<div class="w-10 h-10 bg-slate-200 rounded-full shrink-0"></div>
+		<div class="h-10 w-10 shrink-0 rounded-full bg-slate-200"></div>
 	{/if}
 	<div class="flex-1 space-y-2">
-		<div class="h-4 bg-slate-200 rounded w-1/3"></div>
+		<div class="h-4 w-1/3 rounded bg-slate-200"></div>
 		{#if lines > 1}
-			<div class="h-3 bg-slate-150 rounded w-2/3"></div>
+			<div class="bg-slate-150 h-3 w-2/3 rounded"></div>
 		{/if}
 	</div>
-	<div class="w-12 h-5 bg-slate-200 rounded"></div>
+	<div class="h-5 w-12 rounded bg-slate-200"></div>
 </div>

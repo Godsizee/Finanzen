@@ -77,15 +77,15 @@ Schulden (Negativ): text-red-600.
 
 Guthaben (Positiv): text-emerald-600.
 
-Interaktionen: * Alle klickbaren Elemente benötigen einen Mindest-Touchbereich von 44px (Apple HIG) oder 48px (Material Design).
+Interaktionen: \* Alle klickbaren Elemente benötigen einen Mindest-Touchbereich von 44px (Apple HIG) oder 48px (Material Design).
 
 Nutze active:scale-95 und transition-transform für taktiles Feedback bei Buttons.
 
 Formulare: Immer HTML5 inputmode (z.B. inputmode="decimal") für das korrekte mobile Keyboard setzen.
 
 5. Dokumentation (Obsidian Vault)
-Erstelle eine Vollständige projektdokumentation.
-Speicherort der Dokumentation: G:\Meine Ablage\Ideen\Projekte\finanzen
+   Erstelle eine Vollständige projektdokumentation.
+   Speicherort der Dokumentation: G:\Meine Ablage\Ideen\Projekte\finanzen
 
 Sämtliche Architektur-Entscheidungen, Features und Funktionserklärungen müssen parallel zur Entwicklung als Markdown-Notizen in einem eigens dafür angelegten Obsidian Vault dokumentiert werden. Erstelle eine Vollständige projektdokumentation.
 

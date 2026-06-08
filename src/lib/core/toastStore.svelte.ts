@@ -1,7 +1,20 @@
 class ToastStore {
-	toasts = $state<{ id: string; message: string; type: 'success' | 'error' | 'info'; actionName?: string; actionFn?: () => void }[]>([]);
+	toasts = $state<
+		{
+			id: string;
+			message: string;
+			type: 'success' | 'error' | 'info';
+			actionName?: string;
+			actionFn?: () => void;
+		}[]
+	>([]);
 
-	add(message: string, type: 'success' | 'error' | 'info' = 'info', actionName?: string, actionFn?: () => void) {
+	add(
+		message: string,
+		type: 'success' | 'error' | 'info' = 'info',
+		actionName?: string,
+		actionFn?: () => void
+	) {
 		const id = crypto.randomUUID();
 		this.toasts = [...this.toasts, { id, message, type, actionName, actionFn }];
 		setTimeout(() => {

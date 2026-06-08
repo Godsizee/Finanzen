@@ -36,10 +36,10 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center min-h-[80vh] p-4">
-	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
-		<div class="text-center space-y-2">
-			<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
+<div class="flex min-h-[80vh] flex-col items-center justify-center p-4">
+	<div class="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+		<div class="space-y-2 text-center">
+			<img src="/logo.svg" alt="FairShare Logo" class="mx-auto mb-2 h-16 w-16" />
 			<h1 class="text-2xl font-bold text-slate-900">Neuer Account</h1>
 			<p class="text-slate-500">Registriere dich für FairShare.</p>
 		</div>
@@ -53,7 +53,7 @@
 					bind:value={name}
 					required
 					placeholder="Vorname"
-					class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 transition-shadow focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
@@ -65,12 +65,14 @@
 					bind:value={email}
 					required
 					placeholder="deine@email.de"
-					class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 transition-shadow focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
 			<div class="space-y-1">
-				<label for="password" class="text-sm font-medium text-slate-700">Passwort (min. 8 Zeichen)</label>
+				<label for="password" class="text-sm font-medium text-slate-700"
+					>Passwort (min. 8 Zeichen)</label
+				>
 				<input
 					id="password"
 					type="password"
@@ -78,14 +80,14 @@
 					required
 					minlength="8"
 					placeholder="••••••••"
-					class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 transition-shadow focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
 			<button
 				type="submit"
 				disabled={loading}
-				class="w-full py-3 px-4 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-medium text-white transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{loading ? 'Lade...' : 'Registrieren'}
 			</button>
@@ -93,7 +95,7 @@
 
 		<p class="text-center text-sm text-slate-500">
 			Bereits einen Account?
-			<a href="/login" class="text-slate-900 font-medium hover:underline">Hier einloggen</a>
+			<a href="/login" class="font-medium text-slate-900 hover:underline">Hier einloggen</a>
 		</p>
 	</div>
 </div>

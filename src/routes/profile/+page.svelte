@@ -2,7 +2,20 @@
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { authApi } from '$lib/features/auth/api';
-	import { User, UserPlus, Users, LogOut, Search, XCircle, CheckCircle, Coins, KeyRound, Mail, AlertTriangle, ShieldCheck } from '@lucide/svelte';
+	import {
+		User,
+		UserPlus,
+		Users,
+		LogOut,
+		Search,
+		XCircle,
+		CheckCircle,
+		Coins,
+		KeyRound,
+		Mail,
+		AlertTriangle,
+		ShieldCheck
+	} from '@lucide/svelte';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { toast } from '$lib/core/toastStore.svelte';
@@ -18,7 +31,7 @@
 	let budgetInput = $state('');
 	let savingBudget = $state(false);
 
-	let costSharingMode = $state<'kasse'|'split'>('kasse');
+	let costSharingMode = $state<'kasse' | 'split'>('kasse');
 	let costSharingPercent = $state(50);
 	let savingCostSharing = $state(false);
 
@@ -33,7 +46,7 @@
 	async function handlePasswordChange(e: Event) {
 		e.preventDefault();
 		if (!authStore.currentUser) return;
-		
+
 		const pwValidation = isValidPassword(newPassword);
 		if (!pwValidation.valid) {
 			toast.error(pwValidation.message || 'Passwort-Validierung fehlgeschlagen.');
@@ -99,10 +112,11 @@
 		}
 	}
 
-
 	$effect(() => {
 		if (authStore.currentUser) {
-			incomeInput = authStore.currentUser.income ? (authStore.currentUser.income / 100).toString() : '';
+			incomeInput = authStore.currentUser.income
+				? (authStore.currentUser.income / 100).toString()
+				: '';
 			costSharingMode = authStore.currentUser.cost_sharing_mode || 'kasse';
 			costSharingPercent = authStore.currentUser.cost_sharing_percent || 50;
 		}
@@ -114,15 +128,17 @@
 
 	onMount(() => {
 		partnerStore.loadPartnerStatus();
-		
+
 		// Check for invite query param
 		const inviteEmail = new URLSearchParams(window.location.search).get('invite');
 		if (inviteEmail && !partnerStore.partnerUser) {
 			searchEmail = decodeURIComponent(inviteEmail);
-			partnerStore.searchByEmail(searchEmail).then(res => {
+			partnerStore.searchByEmail(searchEmail).then((res) => {
 				if (res) {
 					searchResult = res;
-					const confirmInvite = confirm(`Möchtest du ${res.name} (${res.email}) als Partner einladen?`);
+					const confirmInvite = confirm(
+						`Möchtest du ${res.name} (${res.email}) als Partner einladen?`
+					);
 					if (confirmInvite) {
 						partnerStore.sendInvite(res.id);
 					}
@@ -214,84 +230,107 @@
 
 	function copyInviteLink() {
 		if (!authStore.currentUser?.email) return;
-		const link = window.location.origin + '/profile?invite=' + encodeURIComponent(authStore.currentUser.email);
-		navigator.clipboard.writeText(link).then(() => {
-			toast.success('Einladungslink kopiert!');
-		}).catch(() => {
-			toast.error('Fehler beim Kopieren des Links.');
-		});
+		const link =
+			window.location.origin + '/profile?invite=' + encodeURIComponent(authStore.currentUser.email);
+		navigator.clipboard
+			.writeText(link)
+			.then(() => {
+				toast.success('Einladungslink kopiert!');
+			})
+			.catch(() => {
+				toast.error('Fehler beim Kopieren des Links.');
+			});
 	}
 </script>
 
-<div class="p-4 space-y-6">
+<div class="space-y-6 p-4">
 	<!-- Profil Info -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 flex items-center gap-4">
-		<div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
-			<User class="w-8 h-8 text-slate-500" />
+	<div class="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm">
+		<div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+			<User class="h-8 w-8 text-slate-500" />
 		</div>
 		<div class="flex-1">
-			<h2 class="text-xl font-bold text-slate-900">{authStore.currentUser?.name || 'Mein Profil'}</h2>
+			<h2 class="text-xl font-bold text-slate-900">
+				{authStore.currentUser?.name || 'Mein Profil'}
+			</h2>
 			<p class="text-sm text-slate-500">{authStore.currentUser?.email}</p>
 		</div>
 		<button
 			onclick={handleLogout}
-			class="p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 rounded-full transition-colors"
+			class="rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
 			title="Abmelden"
 		>
-			<LogOut class="w-6 h-6" />
+			<LogOut class="h-6 w-6" />
 		</button>
 	</div>
 
 	<!-- Nettoeinkommen Bereich -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-			<Coins class="w-5 h-5 text-slate-500" />
+	<div class="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+			<Coins class="h-5 w-5 text-slate-500" />
 			Nettoeinkommen
 		</h3>
 		<p class="text-sm text-slate-500">
-			Trage dein monatliches Nettoeinkommen ein, um das faire Kostenverhältnis mit deinem Partner zu berechnen.
+			Trage dein monatliches Nettoeinkommen ein, um das faire Kostenverhältnis mit deinem Partner zu
+			berechnen.
 		</p>
 		<form onsubmit={saveIncome} class="flex gap-2">
 			<div class="relative flex-1">
-				<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">€</span>
+				<span class="absolute top-1/2 right-4 -translate-y-1/2 font-medium text-slate-400">€</span>
 				<input
 					type="text"
 					inputmode="decimal"
 					bind:value={incomeInput}
 					placeholder="z. B. 2500"
 					required
-					class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-10 pl-4 font-medium transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 			<button
 				type="submit"
 				disabled={savingIncome}
-				class="px-6 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px]"
+				class="min-h-[48px] rounded-xl bg-slate-900 px-6 font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 			>
 				{savingIncome ? '...' : 'Speichern'}
 			</button>
 		</form>
 
 		{#if partnerStore.partnerStatus === 'active' && partnerStore.partnerUser}
-			<div class="mt-4 pt-4 border-t border-slate-100 space-y-2">
+			<div class="mt-4 space-y-2 border-t border-slate-100 pt-4">
 				<div class="flex justify-between text-sm">
 					<span class="text-slate-500">Einkommen Partner ({partnerStore.partnerUser.name}):</span>
 					<span class="font-semibold text-slate-800">
-						{partnerStore.partnerUser.income ? (partnerStore.partnerUser.income / 100).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' }) : 'Nicht eingetragen'}
+						{partnerStore.partnerUser.income
+							? (partnerStore.partnerUser.income / 100).toLocaleString('de-DE', {
+									style: 'currency',
+									currency: 'EUR'
+								})
+							: 'Nicht eingetragen'}
 					</span>
 				</div>
-				
+
 				{#if (authStore.currentUser?.income || 0) > 0 && (partnerStore.partnerUser.income || 0) > 0}
-					{@const total = (authStore.currentUser?.income || 0) + (partnerStore.partnerUser.income || 0)}
+					{@const total =
+						(authStore.currentUser?.income || 0) + (partnerStore.partnerUser.income || 0)}
 					{@const myPercent = Math.round(((authStore.currentUser?.income || 0) / total) * 100)}
 					{@const partnerPercent = 100 - myPercent}
 					<div class="flex flex-col gap-1.5 pt-2">
-						<span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Faires Split-Verhältnis</span>
-						<div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
-							<div class="bg-slate-900 h-full transition-all" style="width: {myPercent}%" title="Du: {myPercent}%"></div>
-							<div class="bg-slate-400 h-full transition-all" style="width: {partnerPercent}%" title="Partner: {partnerPercent}%"></div>
+						<span class="text-xs font-semibold tracking-wider text-slate-400 uppercase"
+							>Faires Split-Verhältnis</span
+						>
+						<div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
+							<div
+								class="h-full bg-slate-900 transition-all"
+								style="width: {myPercent}%"
+								title="Du: {myPercent}%"
+							></div>
+							<div
+								class="h-full bg-slate-400 transition-all"
+								style="width: {partnerPercent}%"
+								title="Partner: {partnerPercent}%"
+							></div>
 						</div>
-						<div class="flex justify-between text-xs text-slate-500 font-medium">
+						<div class="flex justify-between text-xs font-medium text-slate-500">
 							<span>Du: {myPercent}%</span>
 							<span>{partnerStore.partnerUser.name}: {partnerPercent}%</span>
 						</div>
@@ -302,37 +341,45 @@
 	</div>
 
 	<!-- Kostenaufteilung Bereich -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-			<Users class="w-5 h-5 text-slate-500" />
+	<div class="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+			<Users class="h-5 w-5 text-slate-500" />
 			Kostenaufteilung
 		</h3>
 		<p class="text-sm text-slate-500">
 			Lege fest, wie gemeinsame Kosten zwischen euch verrechnet werden sollen.
 		</p>
 		<form onsubmit={saveCostSharing} class="space-y-6">
-			<div class="flex bg-slate-100 p-1 rounded-xl">
+			<div class="flex rounded-xl bg-slate-100 p-1">
 				<button
 					type="button"
-					onclick={() => costSharingMode = 'kasse'}
-					class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {costSharingMode === 'kasse' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+					onclick={() => (costSharingMode = 'kasse')}
+					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
+					'kasse'
+						? 'bg-white text-slate-900 shadow-sm'
+						: 'text-slate-500 hover:text-slate-700'}"
 				>
 					Gemeinsame Kasse
 				</button>
 				<button
 					type="button"
-					onclick={() => costSharingMode = 'split'}
-					class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {costSharingMode === 'split' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}"
+					onclick={() => (costSharingMode = 'split')}
+					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
+					'split'
+						? 'bg-white text-slate-900 shadow-sm'
+						: 'text-slate-500 hover:text-slate-700'}"
 				>
 					Prozentualer Split
 				</button>
 			</div>
 
 			{#if costSharingMode === 'split'}
-				<div class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-					<div class="flex justify-between items-center text-sm font-medium">
+				<div class="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+					<div class="flex items-center justify-between text-sm font-medium">
 						<span class="text-slate-900">Du zahlst: {costSharingPercent}%</span>
-						<span class="text-slate-500">{partnerStore.partnerUser?.name || 'Partner'}: {100 - costSharingPercent}%</span>
+						<span class="text-slate-500"
+							>{partnerStore.partnerUser?.name || 'Partner'}: {100 - costSharingPercent}%</span
+						>
 					</div>
 					<input
 						type="range"
@@ -340,20 +387,27 @@
 						max="95"
 						step="5"
 						bind:value={costSharingPercent}
-						class="w-full accent-slate-900 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+						class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-slate-900"
 					/>
-					<div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden flex">
-						<div class="bg-slate-900 h-full transition-all" style="width: {costSharingPercent}%"></div>
-						<div class="bg-slate-400 h-full transition-all" style="width: {100 - costSharingPercent}%"></div>
+					<div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-200">
+						<div
+							class="h-full bg-slate-900 transition-all"
+							style="width: {costSharingPercent}%"
+						></div>
+						<div
+							class="h-full bg-slate-400 transition-all"
+							style="width: {100 - costSharingPercent}%"
+						></div>
 					</div>
-					<p class="text-xs text-slate-500 text-center">
+					<p class="text-center text-xs text-slate-500">
 						Wenn eine Transaktion geteilt wird, übernimmst du {costSharingPercent}% der Kosten.
 					</p>
 				</div>
 			{:else}
-				<div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-					<p class="text-sm text-slate-600 text-center">
-						Kosten werden 50/50 aufgeteilt. Schulden und Guthaben werden weiterhin ganz normal im Dashboard berechnet.
+				<div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+					<p class="text-center text-sm text-slate-600">
+						Kosten werden 50/50 aufgeteilt. Schulden und Guthaben werden weiterhin ganz normal im
+						Dashboard berechnet.
 					</p>
 				</div>
 			{/if}
@@ -361,39 +415,39 @@
 			<button
 				type="submit"
 				disabled={savingCostSharing}
-				class="w-full py-3 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50"
+				class="w-full rounded-xl bg-slate-900 py-3 font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 			>
 				{savingCostSharing ? 'Speichere...' : 'Aufteilung speichern'}
 			</button>
 		</form>
 	</div>
 
-
 	<!-- Haushaltsbudget Bereich -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-			<Coins class="w-5 h-5 text-slate-500" />
+	<div class="space-y-4 rounded-2xl bg-white p-6 shadow-sm">
+		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+			<Coins class="h-5 w-5 text-slate-500" />
 			Gemeinsames Monatsbudget
 		</h3>
 		<p class="text-sm text-slate-500">
-			Lege ein monatliches Budget für euren gemeinsamen Haushalt fest, um das noch verfügbare Geld auf dem Dashboard anzuzeigen.
+			Lege ein monatliches Budget für euren gemeinsamen Haushalt fest, um das noch verfügbare Geld
+			auf dem Dashboard anzuzeigen.
 		</p>
 		<form onsubmit={saveBudget} class="flex gap-2">
 			<div class="relative flex-1">
-				<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">€</span>
+				<span class="absolute top-1/2 right-4 -translate-y-1/2 font-medium text-slate-400">€</span>
 				<input
 					type="text"
 					inputmode="decimal"
 					bind:value={budgetInput}
 					placeholder="z. B. 1000"
 					required
-					class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-10 pl-4 font-medium transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 			<button
 				type="submit"
 				disabled={savingBudget}
-				class="px-6 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px]"
+				class="min-h-[48px] rounded-xl bg-slate-900 px-6 font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 			>
 				{savingBudget ? '...' : 'Speichern'}
 			</button>
@@ -401,32 +455,34 @@
 	</div>
 
 	<!-- Partner Bereich -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
-		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-			<Users class="w-5 h-5" />
+	<div class="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+			<Users class="h-5 w-5" />
 			Partnerschaft
 		</h3>
 
 		{#if partnerStore.partnerStatus === 'active'}
-			<div class="p-4 bg-emerald-50 border border-emerald-100 rounded-xl space-y-4">
+			<div class="space-y-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4">
 				<div class="flex items-center gap-3">
-					<CheckCircle class="w-6 h-6 text-emerald-600" />
+					<CheckCircle class="h-6 w-6 text-emerald-600" />
 					<div>
 						<p class="text-sm font-medium text-emerald-900">Verpartnert mit</p>
-						<p class="font-bold text-emerald-700">{partnerStore.partnerUser?.name} ({partnerStore.partnerUser?.email})</p>
+						<p class="font-bold text-emerald-700">
+							{partnerStore.partnerUser?.name} ({partnerStore.partnerUser?.email})
+						</p>
 					</div>
 				</div>
 				<button
 					onclick={() => partnerStore.cancelPartnership()}
-					class="w-full py-2 px-4 bg-white border border-red-200 text-red-600 rounded-lg font-medium active:scale-95 transition-transform"
+					class="w-full rounded-lg border border-red-200 bg-white px-4 py-2 font-medium text-red-600 transition-transform active:scale-95"
 				>
 					Verpartnerung aufheben
 				</button>
 			</div>
 		{:else if partnerStore.partnerStatus === 'pending_received'}
-			<div class="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-4">
+			<div class="space-y-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
 				<div class="flex items-center gap-3">
-					<UserPlus class="w-6 h-6 text-blue-600" />
+					<UserPlus class="h-6 w-6 text-blue-600" />
 					<div>
 						<p class="font-bold text-blue-900">{partnerStore.partnerUser?.name}</p>
 						<p class="text-sm text-blue-800">hat dich als Partner hinzugefügt. Stimmt das?</p>
@@ -435,22 +491,24 @@
 				<div class="flex gap-3">
 					<button
 						onclick={() => partnerStore.acceptInvite()}
-						class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium active:scale-95 transition-transform"
+						class="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-transform active:scale-95"
 					>
 						Ja, bestätigen
 					</button>
 					<button
 						onclick={() => partnerStore.rejectInvite()}
-						class="flex-1 py-2 px-4 bg-white border border-blue-200 text-blue-600 rounded-lg font-medium active:scale-95 transition-transform"
+						class="flex-1 rounded-lg border border-blue-200 bg-white px-4 py-2 font-medium text-blue-600 transition-transform active:scale-95"
 					>
 						Nein
 					</button>
 				</div>
 			</div>
 		{:else if partnerStore.partnerStatus === 'pending_sent'}
-			<div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+			<div class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
 				<div class="flex items-center gap-3">
-					<div class="w-6 h-6 rounded-full border-2 border-slate-300 border-t-slate-600 animate-spin"></div>
+					<div
+						class="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600"
+					></div>
 					<div>
 						<p class="font-bold text-slate-900">Einladung gesendet an</p>
 						<p class="text-sm text-slate-500">{partnerStore.partnerUser?.email}</p>
@@ -459,7 +517,7 @@
 				<p class="text-xs text-slate-400">Warte auf Bestätigung des Partners...</p>
 				<button
 					onclick={() => partnerStore.cancelPartnership()}
-					class="w-full py-2 px-4 bg-white border border-slate-200 text-slate-600 rounded-lg font-medium active:scale-95 transition-transform"
+					class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 font-medium text-slate-600 transition-transform active:scale-95"
 				>
 					Einladung zurückziehen
 				</button>
@@ -467,48 +525,53 @@
 		{:else}
 			<div class="space-y-4">
 				<p class="text-sm text-slate-500">
-					Du kannst die App gemeinsam mit deinem Partner nutzen. Such nach seiner E-Mail-Adresse oder teile einen Einladungslink.
+					Du kannst die App gemeinsam mit deinem Partner nutzen. Such nach seiner E-Mail-Adresse
+					oder teile einen Einladungslink.
 				</p>
 
-				<button 
-					type="button" 
-					onclick={copyInviteLink} 
-					class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-medium active:scale-95 transition-transform flex items-center justify-center gap-2 text-sm"
+				<button
+					type="button"
+					onclick={copyInviteLink}
+					class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 py-2.5 text-sm font-medium text-slate-800 transition-transform hover:bg-slate-200 active:scale-95"
 				>
 					<UserPlus size={16} /> Einladungslink kopieren
 				</button>
-				
-				<div class="flex items-center my-2">
-					<div class="flex-1 h-px bg-slate-200"></div>
-					<span class="px-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider">Oder</span>
-					<div class="flex-1 h-px bg-slate-200"></div>
+
+				<div class="my-2 flex items-center">
+					<div class="h-px flex-1 bg-slate-200"></div>
+					<span class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase"
+						>Oder</span
+					>
+					<div class="h-px flex-1 bg-slate-200"></div>
 				</div>
 
 				<form onsubmit={handleSearch} class="flex gap-2">
 					<div class="relative flex-1">
-						<Search class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+						<Search class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-slate-400" />
 						<input
 							type="email"
 							bind:value={searchEmail}
 							placeholder="E-Mail suchen..."
 							required
-							class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900"
+							class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-4 pl-10 focus:ring-2 focus:ring-slate-900 focus:outline-none"
 						/>
 					</div>
 					<button
 						type="submit"
 						disabled={searching}
-						class="px-4 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50"
+						class="rounded-xl bg-slate-900 px-4 font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 					>
 						Suchen
 					</button>
 				</form>
 
 				{#if searchResult}
-					<div class="p-4 bg-slate-50 rounded-xl flex items-center justify-between mt-4 border border-slate-200">
+					<div
+						class="mt-4 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4"
+					>
 						<div class="flex items-center gap-3">
-							<div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center">
-								<User class="w-5 h-5 text-slate-500" />
+							<div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200">
+								<User class="h-5 w-5 text-slate-500" />
 							</div>
 							<div>
 								<p class="font-medium text-slate-900">{searchResult.name || 'Ohne Name'}</p>
@@ -517,10 +580,10 @@
 						</div>
 						<button
 							onclick={() => partnerStore.sendInvite(searchResult.id)}
-							class="p-2 bg-emerald-100 text-emerald-700 rounded-lg font-medium active:scale-95 transition-transform hover:bg-emerald-200"
+							class="rounded-lg bg-emerald-100 p-2 font-medium text-emerald-700 transition-transform hover:bg-emerald-200 active:scale-95"
 							title="Einladen"
 						>
-							<UserPlus class="w-5 h-5" />
+							<UserPlus class="h-5 w-5" />
 						</button>
 					</div>
 				{/if}
@@ -529,16 +592,16 @@
 	</div>
 
 	<!-- Sicherheit & Account Bereich -->
-	<div class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
-		<h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-			<ShieldCheck class="w-5 h-5 text-slate-500" />
+	<div class="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">
+			<ShieldCheck class="h-5 w-5 text-slate-500" />
 			Sicherheit & Account
 		</h3>
 
 		<!-- E-Mail-Adresse ändern -->
 		<div class="space-y-3">
-			<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
-				<Mail class="w-4 h-4 text-slate-400" />
+			<h4 class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+				<Mail class="h-4 w-4 text-slate-400" />
 				E-Mail-Adresse ändern
 			</h4>
 			<p class="text-xs text-slate-500">
@@ -550,12 +613,12 @@
 					bind:value={newEmail}
 					placeholder="neue@email.de"
 					required
-					class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all font-medium text-sm min-h-[48px]"
+					class="min-h-[48px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 				<button
 					type="submit"
 					disabled={changingEmail}
-					class="px-5 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px] text-sm shrink-0"
+					class="min-h-[48px] shrink-0 rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 				>
 					{changingEmail ? '...' : 'Ändern'}
 				</button>
@@ -566,39 +629,39 @@
 
 		<!-- Passwort ändern -->
 		<form onsubmit={handlePasswordChange} class="space-y-3">
-			<h4 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
-				<KeyRound class="w-4 h-4 text-slate-400" />
+			<h4 class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+				<KeyRound class="h-4 w-4 text-slate-400" />
 				Passwort ändern
 			</h4>
-			
+
 			<div class="space-y-2">
 				<input
 					type="password"
 					bind:value={oldPassword}
 					placeholder="Aktuelles Passwort"
 					required
-					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+					class="min-h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 				<input
 					type="password"
 					bind:value={newPassword}
 					placeholder="Neues Passwort (min. 8 Zeichen)"
 					required
-					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+					class="min-h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 				<input
 					type="password"
 					bind:value={newPasswordConfirm}
 					placeholder="Neues Passwort bestätigen"
 					required
-					class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all text-sm min-h-[48px]"
+					class="min-h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
 			<button
 				type="submit"
 				disabled={changingPassword}
-				class="w-full py-2.5 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 min-h-[48px] text-sm flex justify-center items-center gap-2"
+				class="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-sm font-medium text-white transition-transform active:scale-95 disabled:opacity-50"
 			>
 				{changingPassword ? 'Wird geändert...' : 'Passwort aktualisieren'}
 			</button>
@@ -608,17 +671,18 @@
 
 		<!-- Gefahrenzone / Account löschen -->
 		<div class="space-y-3">
-			<h4 class="text-sm font-semibold text-red-600 flex items-center gap-2">
-				<AlertTriangle class="w-4 h-4" />
+			<h4 class="flex items-center gap-2 text-sm font-semibold text-red-600">
+				<AlertTriangle class="h-4 w-4" />
 				Gefahrenzone
 			</h4>
 			<p class="text-xs text-slate-500">
-				Hier kannst du deinen Account dauerhaft löschen. Diese Aktion löscht deine Profildaten unwiderruflich.
+				Hier kannst du deinen Account dauerhaft löschen. Diese Aktion löscht deine Profildaten
+				unwiderruflich.
 			</p>
 			<button
 				type="button"
 				onclick={handleAccountDelete}
-				class="w-full py-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-xl font-medium active:scale-95 transition-all text-sm min-h-[48px]"
+				class="min-h-[48px] w-full rounded-xl border border-red-200 bg-red-50 py-2.5 text-sm font-medium text-red-600 transition-all hover:bg-red-100 active:scale-95"
 			>
 				Account unwiderruflich löschen
 			</button>

@@ -12,10 +12,34 @@
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
-	import { ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt } from '@lucide/svelte';
+	import {
+		ShoppingBag,
+		Home,
+		Sparkles,
+		Car,
+		CircleEllipsis,
+		Zap,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt
+	} from '@lucide/svelte';
 
 	const iconMap: Record<string, any> = {
-		ShoppingBag, Home, Sparkles, Car, CircleEllipsis, Zap, Gamepad2, Tv, Utensils, Heart, Shield, Shirt
+		ShoppingBag,
+		Home,
+		Sparkles,
+		Car,
+		CircleEllipsis,
+		Zap,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt
 	};
 
 	const id = $page.params.id as string;
@@ -70,12 +94,18 @@
 					const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
 					if (meta.split_percent) {
 						customSplitType = 'percent';
-						splitPercentMe = meta.split_percent[authStore.currentUser?.id || '']?.toString() || '50';
-						splitPercentPartner = meta.split_percent[partnerStore.partnerUser?.id || '']?.toString() || '50';
+						splitPercentMe =
+							meta.split_percent[authStore.currentUser?.id || '']?.toString() || '50';
+						splitPercentPartner =
+							meta.split_percent[partnerStore.partnerUser?.id || '']?.toString() || '50';
 					} else if (meta.split_cents) {
 						customSplitType = 'amount';
-						splitAmountMe = ((meta.split_cents[authStore.currentUser?.id || ''] || 0) / 100).toString().replace('.', ',');
-						splitAmountPartner = ((meta.split_cents[partnerStore.partnerUser?.id || ''] || 0) / 100).toString().replace('.', ',');
+						splitAmountMe = ((meta.split_cents[authStore.currentUser?.id || ''] || 0) / 100)
+							.toString()
+							.replace('.', ',');
+						splitAmountPartner = ((meta.split_cents[partnerStore.partnerUser?.id || ''] || 0) / 100)
+							.toString()
+							.replace('.', ',');
 					}
 				} catch (e) {
 					console.error('Failed to parse metadata', e);
@@ -99,7 +129,7 @@
 
 		loading = true;
 		const totalCents = toCents(amount);
-		
+
 		let paidBy = authStore.currentUser?.id;
 		if (payer === 'partner') {
 			if (!partnerStore.partnerUser) {
@@ -137,7 +167,11 @@
 			} else {
 				const valMe = parseFloat(splitAmountMe.replace(',', '.'));
 				const valPartner = parseFloat(splitAmountPartner.replace(',', '.'));
-				if (isNaN(valMe) || isNaN(valPartner) || Math.round((valMe + valPartner) * 100) !== totalCents) {
+				if (
+					isNaN(valMe) ||
+					isNaN(valPartner) ||
+					Math.round((valMe + valPartner) * 100) !== totalCents
+				) {
 					toast.error('Die Summe der Beträge muss dem Gesamtbetrag entsprechen!');
 					loading = false;
 					return;
@@ -166,51 +200,57 @@
 	}
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
+<div class="flex h-full flex-col bg-slate-50 p-4 pt-8">
 	<header class="mb-8 flex items-center gap-4">
-		<button onclick={() => goto('/history')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
+		<button
+			onclick={() => goto('/history')}
+			class="-ml-2 rounded-full p-2 transition-colors hover:bg-slate-200"
+			aria-label="Zurück"
+		>
 			<ArrowLeft size={24} class="text-slate-900" />
 		</button>
-		<h1 class="text-xl font-bold tracking-tight text-slate-900">
-			Eintrag bearbeiten
-		</h1>
+		<h1 class="text-xl font-bold tracking-tight text-slate-900">Eintrag bearbeiten</h1>
 	</header>
 
 	<!-- Segment Control -->
-	<div class="flex bg-slate-200 p-1 rounded-xl mb-6">
-		<button 
+	<div class="mb-6 flex rounded-xl bg-slate-200 p-1">
+		<button
 			type="button"
-			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'expense' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
-			onclick={() => type = 'expense'}
+			class="flex-1 rounded-lg py-2 text-sm font-semibold transition-all {type === 'expense'
+				? 'bg-white text-slate-900 shadow-sm'
+				: 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => (type = 'expense')}
 		>
 			Ausgabe
 		</button>
-		<button 
+		<button
 			type="button"
-			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {type === 'deposit' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
-			onclick={() => type = 'deposit'}
+			class="flex-1 rounded-lg py-2 text-sm font-semibold transition-all {type === 'deposit'
+				? 'bg-white text-slate-900 shadow-sm'
+				: 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => (type = 'deposit')}
 		>
 			Einzahlung
 		</button>
 	</div>
 
-	<form onsubmit={handleSubmit} class="flex flex-col gap-6 flex-1">
-		<Input 
-			label="Betrag (€)" 
-			type="text" 
-			inputmode="decimal" 
-			placeholder="0,00" 
-			required 
-			bind:value={amount} 
-			class="text-4xl font-bold mb-4"
+	<form onsubmit={handleSubmit} class="flex flex-1 flex-col gap-6">
+		<Input
+			label="Betrag (€)"
+			type="text"
+			inputmode="decimal"
+			placeholder="0,00"
+			required
+			bind:value={amount}
+			class="mb-4 text-4xl font-bold"
 		/>
 
 		<div class="flex flex-col gap-6">
-			<Input 
-				label={type === 'expense' ? 'Wofür?' : 'Beschreibung (optional)'} 
-				type="text" 
-				placeholder={type === 'expense' ? 'Supermarkt, Tanken...' : 'Monatlicher Beitrag...'} 
-				bind:value={note} 
+			<Input
+				label={type === 'expense' ? 'Wofür?' : 'Beschreibung (optional)'}
+				type="text"
+				placeholder={type === 'expense' ? 'Supermarkt, Tanken...' : 'Monatlicher Beitrag...'}
+				bind:value={note}
 			/>
 
 			{#if type === 'expense'}
@@ -221,12 +261,18 @@
 							{@const IconComponent = iconMap[cat.icon] || CircleEllipsis}
 							<button
 								type="button"
-								class="flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all min-h-[72px] active:scale-95
-									{selectedCategoryId === cat.id ? 'border-slate-900 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'}"
-								onclick={() => selectedCategoryId = cat.id}
+								class="flex min-h-[72px] flex-col items-center justify-center rounded-2xl border p-3 text-center transition-all active:scale-95
+									{selectedCategoryId === cat.id
+									? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+									: 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}"
+								onclick={() => (selectedCategoryId = cat.id)}
 							>
-								<svelte:component this={IconComponent} size={20} class={selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'} />
-								<span class="text-[11px] font-semibold mt-1">{cat.name}</span>
+								<svelte:component
+									this={IconComponent}
+									size={20}
+									class={selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'}
+								/>
+								<span class="mt-1 text-[11px] font-semibold">{cat.name}</span>
 							</button>
 						{/each}
 					</div>
@@ -238,30 +284,30 @@
 					{type === 'expense' ? 'Wer hat bezahlt?' : 'Wer zahlt ein?'}
 				</span>
 				<div class="flex gap-2">
-					<Button 
-						type="button" 
-						variant={payer === 'ich' ? 'primary' : 'secondary'} 
+					<Button
+						type="button"
+						variant={payer === 'ich' ? 'primary' : 'secondary'}
 						class="flex-1"
-						onclick={() => payer = 'ich'}
+						onclick={() => (payer = 'ich')}
 					>
 						Ich
 					</Button>
 					{#if partnerStore.partnerStatus === 'active'}
-					<Button 
-						type="button" 
-						variant={payer === 'partner' ? 'primary' : 'secondary'} 
-						class="flex-1"
-						onclick={() => payer = 'partner'}
-					>
-						Partner
-					</Button>
+						<Button
+							type="button"
+							variant={payer === 'partner' ? 'primary' : 'secondary'}
+							class="flex-1"
+							onclick={() => (payer = 'partner')}
+						>
+							Partner
+						</Button>
 					{/if}
 					{#if type === 'expense'}
-						<Button 
-							type="button" 
-							variant={payer === 'kasse' ? 'primary' : 'secondary'} 
+						<Button
+							type="button"
+							variant={payer === 'kasse' ? 'primary' : 'secondary'}
 							class="flex-1"
-							onclick={() => payer = 'kasse'}
+							onclick={() => (payer = 'kasse')}
 						>
 							Kasse
 						</Button>
@@ -271,11 +317,12 @@
 
 			{#if type === 'expense' && payer !== 'kasse'}
 				<div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
-					<label for="split-mode" class="text-sm font-medium text-slate-700">Kostenaufteilung</label>
-					<select 
+					<label for="split-mode" class="text-sm font-medium text-slate-700">Kostenaufteilung</label
+					>
+					<select
 						id="split-mode"
 						bind:value={splitMode}
-						class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+						class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 					>
 						<option value="50_50">Geteilt (50:50)</option>
 						{#if partnerStore.partnerStatus === 'active'}
@@ -288,19 +335,27 @@
 				</div>
 
 				{#if splitMode === 'custom'}
-					<div class="p-4 bg-slate-100 rounded-2xl flex flex-col gap-4 border border-slate-200/50 animate-in fade-in slide-in-from-top-2 duration-200">
-						<div class="flex bg-slate-200 p-0.5 rounded-lg self-start">
-							<button 
+					<div
+						class="animate-in fade-in slide-in-from-top-2 flex flex-col gap-4 rounded-2xl border border-slate-200/50 bg-slate-100 p-4 duration-200"
+					>
+						<div class="flex self-start rounded-lg bg-slate-200 p-0.5">
+							<button
 								type="button"
-								class="px-3 py-1 text-xs font-semibold rounded-md transition-all {customSplitType === 'percent' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}"
-								onclick={() => customSplitType = 'percent'}
+								class="rounded-md px-3 py-1 text-xs font-semibold transition-all {customSplitType ===
+								'percent'
+									? 'bg-white text-slate-900 shadow-sm'
+									: 'text-slate-600'}"
+								onclick={() => (customSplitType = 'percent')}
 							>
 								Prozent
 							</button>
-							<button 
+							<button
 								type="button"
-								class="px-3 py-1 text-xs font-semibold rounded-md transition-all {customSplitType === 'amount' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}"
-								onclick={() => customSplitType = 'amount'}
+								class="rounded-md px-3 py-1 text-xs font-semibold transition-all {customSplitType ===
+								'amount'
+									? 'bg-white text-slate-900 shadow-sm'
+									: 'text-slate-600'}"
+								onclick={() => (customSplitType = 'amount')}
 							>
 								Betrag
 							</button>
@@ -308,13 +363,30 @@
 
 						{#if customSplitType === 'percent'}
 							<div class="grid grid-cols-2 gap-4">
-								<Input label="Ich (%)" type="number" min="0" max="100" bind:value={splitPercentMe} />
-								<Input label="Partner (%)" type="number" min="0" max="100" bind:value={splitPercentPartner} />
+								<Input
+									label="Ich (%)"
+									type="number"
+									min="0"
+									max="100"
+									bind:value={splitPercentMe}
+								/>
+								<Input
+									label="Partner (%)"
+									type="number"
+									min="0"
+									max="100"
+									bind:value={splitPercentPartner}
+								/>
 							</div>
 						{:else}
 							<div class="grid grid-cols-2 gap-4">
 								<Input label="Ich (€)" type="text" placeholder="0,00" bind:value={splitAmountMe} />
-								<Input label="Partner (€)" type="text" placeholder="0,00" bind:value={splitAmountPartner} />
+								<Input
+									label="Partner (€)"
+									type="text"
+									placeholder="0,00"
+									bind:value={splitAmountPartner}
+								/>
 							</div>
 						{/if}
 					</div>

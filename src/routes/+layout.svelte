@@ -12,8 +12,12 @@
 	import Navigation from '$lib/ui/Navigation.svelte';
 
 	let { children } = $props();
-	
-	let isPublicRoute = $derived(['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes($page.url.pathname));
+
+	let isPublicRoute = $derived(
+		['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes(
+			$page.url.pathname
+		)
+	);
 
 	onMount(async () => {
 		if (authStore.isLoggedIn) {
@@ -29,7 +33,7 @@
 	// Auth Guard & Partner Load
 	$effect(() => {
 		const path = $page.url.pathname;
-		
+
 		if (!authStore.isLoggedIn) {
 			if (!isPublicRoute) {
 				goto('/login');
@@ -43,7 +47,13 @@
 				const needsOnboarding = authStore.currentUser && !authStore.currentUser.onboarded;
 				if (needsOnboarding && path !== '/onboarding') {
 					goto('/onboarding');
-				} else if (!needsOnboarding && (path === '/login' || path === '/register' || path === '/verify-email' || path === '/onboarding')) {
+				} else if (
+					!needsOnboarding &&
+					(path === '/login' ||
+						path === '/register' ||
+						path === '/verify-email' ||
+						path === '/onboarding')
+				) {
 					goto('/');
 				}
 			}
@@ -53,17 +63,18 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200">
+<div class="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-200">
 	<Toaster />
-	
+
 	{#if authStore.isLoggedIn && !isPublicRoute && $page.url.pathname !== '/onboarding'}
 		<Navigation />
 	{/if}
 
-	<div class="md:pl-64 flex flex-col min-h-screen">
-		<main class="w-full max-w-lg mx-auto flex-1 pb-24 relative shadow-sm bg-white md:max-w-2xl md:my-6 md:rounded-2xl md:border md:border-slate-200 md:min-h-0">
+	<div class="flex min-h-screen flex-col md:pl-64">
+		<main
+			class="relative mx-auto w-full max-w-lg flex-1 bg-white pb-24 shadow-sm md:my-6 md:min-h-0 md:max-w-2xl md:rounded-2xl md:border md:border-slate-200"
+		>
 			{@render children()}
 		</main>
 	</div>
 </div>
-

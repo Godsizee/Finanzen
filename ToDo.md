@@ -89,13 +89,13 @@ Darunter können kompakt weitere Kennzahlen erscheinen:
 
 Für die mobile Nutzung sollte eine Bottom-Navigation eingeführt werden. Häufig genutzte Funktionen sind dort deutlich leichter mit dem Daumen erreichbar als im oberen Bereich des Bildschirms.
 
-| Bereich | Zweck |
-|---|---|
-| Übersicht | Aktueller Saldo und Monatsstatus |
-| Verlauf | Ausgaben suchen, prüfen und korrigieren |
-| **+** | Neue Ausgabe oder Einzahlung |
-| Fixkosten | Wiederkehrende Kosten |
-| Haushalt | Partner, Aufteilung und Einstellungen |
+| Bereich   | Zweck                                   |
+| --------- | --------------------------------------- |
+| Übersicht | Aktueller Saldo und Monatsstatus        |
+| Verlauf   | Ausgaben suchen, prüfen und korrigieren |
+| **+**     | Neue Ausgabe oder Einzahlung            |
+| Fixkosten | Wiederkehrende Kosten                   |
+| Haushalt  | Partner, Aufteilung und Einstellungen   |
 
 #### Umsetzung
 

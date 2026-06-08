@@ -15,7 +15,7 @@ export const authApi = {
 			name: name
 		};
 		const record = await pb.collection('users').create(data);
-		
+
 		try {
 			await pb.collection('users').requestVerification(email);
 		} catch (err) {

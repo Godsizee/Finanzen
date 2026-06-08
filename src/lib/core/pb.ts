@@ -16,4 +16,3 @@ pb.afterSend = (response: Response, data: any) => {
 	}
 	return data;
 };
-

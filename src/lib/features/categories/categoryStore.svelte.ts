@@ -12,10 +12,10 @@ class CategoryStore {
 		this.error = null;
 		try {
 			let list = await categoryApi.getAll();
-			
+
 			// If empty, perform seeding of default categories
 			if (list.length === 0) {
-				console.log("Seeding default categories...");
+				console.log('Seeding default categories...');
 				const defaults = [
 					{ name: 'Lebensmittel', icon: 'ShoppingBag', color: 'emerald' },
 					{ name: 'Wohnen & Miete', icon: 'Home', color: 'blue' },
@@ -30,16 +30,16 @@ class CategoryStore {
 					{ name: 'Kleidung & Shopping', icon: 'Shirt', color: 'teal' },
 					{ name: 'Sonstiges', icon: 'CircleEllipsis', color: 'slate' }
 				];
-				
+
 				const created = [];
 				for (const cat of defaults) {
 					const record = await categoryApi.create(cat);
 					created.push(record);
 				}
 				list = created;
-				console.log("Categories seeded successfully!");
+				console.log('Categories seeded successfully!');
 			}
-			
+
 			this.categories = list;
 		} catch (err: any) {
 			this.error = err.message || 'Error loading categories';

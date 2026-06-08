@@ -11,10 +11,22 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
-	
-	import { 
-		ArrowLeft, Trash2, ShoppingBag, Home, Zap, Sparkles, Car, Gamepad2, 
-		Tv, Utensils, Heart, Shield, Shirt, CircleEllipsis 
+
+	import {
+		ArrowLeft,
+		Trash2,
+		ShoppingBag,
+		Home,
+		Zap,
+		Sparkles,
+		Car,
+		Gamepad2,
+		Tv,
+		Utensils,
+		Heart,
+		Shield,
+		Shirt,
+		CircleEllipsis
 	} from '@lucide/svelte';
 
 	const iconMap: Record<string, any> = {
@@ -33,7 +45,7 @@
 	};
 
 	let ruleId = $derived($page.params.id);
-	let rule = $derived(recurringStore.expenses.find(e => e.id === ruleId));
+	let rule = $derived(recurringStore.expenses.find((e) => e.id === ruleId));
 
 	let name = $state('');
 	let amount = $state('');
@@ -57,7 +69,7 @@
 			name = rule.name;
 			amount = (rule.amount / 100).toFixed(2).replace('.', ',');
 			selectedCategoryId = rule.category || '';
-			
+
 			if (rule.split_mode === 'kasse') {
 				payer = 'kasse';
 			} else if (rule.paid_by === authStore.currentUser?.id) {
@@ -65,7 +77,7 @@
 			} else {
 				payer = 'partner';
 			}
-			
+
 			frequency = rule.frequency;
 			dayOfMonth = rule.day_of_month;
 			startDate = rule.start_date.slice(0, 10);
@@ -91,7 +103,7 @@
 
 		loading = true;
 		const totalCents = toCents(amount);
-		
+
 		let paidBy = authStore.currentUser?.id;
 		let splitMode = '50_50';
 
@@ -158,64 +170,77 @@
 	}
 </script>
 
-<div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
+<div class="flex h-full flex-col bg-slate-50 p-4 pt-8">
 	<header class="mb-6 flex items-center justify-between">
 		<div class="flex items-center gap-4">
-			<button onclick={() => goto('/recurring')} class="p-2 -ml-2 rounded-full hover:bg-slate-200 transition-colors" aria-label="Zurück">
+			<button
+				onclick={() => goto('/recurring')}
+				class="-ml-2 rounded-full p-2 transition-colors hover:bg-slate-200"
+				aria-label="Zurück"
+			>
 				<ArrowLeft size={24} class="text-slate-900" />
 			</button>
 			<h1 class="text-xl font-bold tracking-tight text-slate-900">Abo bearbeiten</h1>
 		</div>
-		<button onclick={triggerDelete} class="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors" aria-label="Löschen">
+		<button
+			onclick={triggerDelete}
+			class="rounded-full p-2 text-red-600 transition-colors hover:bg-red-50"
+			aria-label="Löschen"
+		>
 			<Trash2 size={22} />
 		</button>
 	</header>
 
 	{#if !isInitialized}
-		<div class="text-center py-10 text-slate-400 text-sm">
-			Lädt Abonnement-Details...
-		</div>
+		<div class="py-10 text-center text-sm text-slate-400">Lädt Abonnement-Details...</div>
 	{:else}
-		<form onsubmit={handleSubmit} class="flex flex-col gap-5 flex-1 pb-10">
-			<Input 
-				label="Name des Abos / der Ausgabe" 
-				type="text" 
-				placeholder="z.B. Spotify, Netflix, Miete..." 
-				required 
-				bind:value={name} 
+		<form onsubmit={handleSubmit} class="flex flex-1 flex-col gap-5 pb-10">
+			<Input
+				label="Name des Abos / der Ausgabe"
+				type="text"
+				placeholder="z.B. Spotify, Netflix, Miete..."
+				required
+				bind:value={name}
 			/>
 
 			<div class="grid grid-cols-2 gap-4">
-				<Input 
-					label="Betrag (€)" 
-					type="text" 
-					inputmode="decimal" 
-					placeholder="0,00" 
-					required 
-					bind:value={amount} 
+				<Input
+					label="Betrag (€)"
+					type="text"
+					inputmode="decimal"
+					placeholder="0,00"
+					required
+					bind:value={amount}
 				/>
 
 				<div class="flex flex-col gap-1">
-					<label for="day-of-month" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tag im Monat</label>
-					<input 
+					<label
+						for="day-of-month"
+						class="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+						>Tag im Monat</label
+					>
+					<input
 						id="day-of-month"
-						type="number" 
-						min="1" 
-						max="31" 
-						required 
+						type="number"
+						min="1"
+						max="31"
+						required
 						bind:value={dayOfMonth}
-						class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+						class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
 					/>
 				</div>
 			</div>
 
 			<div class="grid grid-cols-2 gap-4">
 				<div class="flex flex-col gap-1">
-					<label for="frequency" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Intervall</label>
-					<select 
+					<label
+						for="frequency"
+						class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Intervall</label
+					>
+					<select
 						id="frequency"
 						bind:value={frequency}
-						class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+						class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
 					>
 						<option value="monthly">Monatlich</option>
 						<option value="quarterly">Quartalsweise</option>
@@ -224,75 +249,91 @@
 				</div>
 
 				<div class="flex flex-col gap-1">
-					<label for="start-date" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Startdatum</label>
-					<input 
+					<label
+						for="start-date"
+						class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Startdatum</label
+					>
+					<input
 						id="start-date"
-						type="date" 
-						required 
+						type="date"
+						required
 						bind:value={startDate}
-						class="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+						class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
 					/>
 				</div>
 			</div>
 
 			<div class="flex flex-col gap-2">
-				<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kategorie</span>
+				<span class="text-xs font-semibold tracking-wider text-slate-500 uppercase">Kategorie</span>
 				<div class="grid grid-cols-3 gap-2">
 					{#each categoryStore.categories as cat (cat.id)}
 						{@const IconComponent = iconMap[cat.icon] || CircleEllipsis}
 						<button
 							type="button"
-							class="flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all min-h-[64px] active:scale-95
-								{selectedCategoryId === cat.id ? 'border-slate-900 bg-slate-900 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300'}"
-							onclick={() => selectedCategoryId = cat.id}
+							class="flex min-h-[64px] flex-col items-center justify-center rounded-2xl border p-2.5 text-center transition-all active:scale-95
+								{selectedCategoryId === cat.id
+								? 'border-slate-900 bg-slate-900 text-white shadow-sm'
+								: 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'}"
+							onclick={() => (selectedCategoryId = cat.id)}
 						>
-							<IconComponent size={18} class={selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'} />
-							<span class="text-[10px] font-semibold mt-1">{cat.name}</span>
+							<IconComponent
+								size={18}
+								class={selectedCategoryId === cat.id ? 'text-emerald-400' : 'text-slate-500'}
+							/>
+							<span class="mt-1 text-[10px] font-semibold">{cat.name}</span>
 						</button>
 					{/each}
 				</div>
 			</div>
 
 			<div class="flex flex-col gap-2">
-				<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Wer bezahlt?</span>
+				<span class="text-xs font-semibold tracking-wider text-slate-500 uppercase"
+					>Wer bezahlt?</span
+				>
 				<div class="flex gap-2">
-					<Button 
-						type="button" 
-						variant={payer === 'ich' ? 'primary' : 'secondary'} 
+					<Button
+						type="button"
+						variant={payer === 'ich' ? 'primary' : 'secondary'}
 						class="flex-1"
-						onclick={() => payer = 'ich'}
+						onclick={() => (payer = 'ich')}
 					>
 						Ich
 					</Button>
 					{#if partnerStore.partnerStatus === 'active'}
-					<Button 
-						type="button" 
-						variant={payer === 'partner' ? 'primary' : 'secondary'} 
-						class="flex-1"
-						onclick={() => payer = 'partner'}
-					>
-						Partner
-					</Button>
+						<Button
+							type="button"
+							variant={payer === 'partner' ? 'primary' : 'secondary'}
+							class="flex-1"
+							onclick={() => (payer = 'partner')}
+						>
+							Partner
+						</Button>
 					{/if}
-					<Button 
-						type="button" 
-						variant={payer === 'kasse' ? 'primary' : 'secondary'} 
+					<Button
+						type="button"
+						variant={payer === 'kasse' ? 'primary' : 'secondary'}
 						class="flex-1"
-						onclick={() => payer = 'kasse'}
+						onclick={() => (payer = 'kasse')}
 					>
 						Kasse
 					</Button>
 				</div>
 			</div>
 
-			<div class="flex items-center justify-between p-3 border border-slate-200 bg-white rounded-xl mt-2">
+			<div
+				class="mt-2 flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3"
+			>
 				<div class="flex flex-col">
 					<span class="text-sm font-semibold text-slate-800">Status</span>
-					<span class="text-[10px] text-slate-500">Wenn inaktiv, werden keine Transaktionen erzeugt.</span>
+					<span class="text-[10px] text-slate-500"
+						>Wenn inaktiv, werden keine Transaktionen erzeugt.</span
+					>
 				</div>
-				<label class="relative inline-flex items-center cursor-pointer">
-					<input type="checkbox" bind:checked={active} class="sr-only peer" />
-					<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
+				<label class="relative inline-flex cursor-pointer items-center">
+					<input type="checkbox" bind:checked={active} class="peer sr-only" />
+					<div
+						class="peer h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-slate-900 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
+					></div>
 				</label>
 			</div>
 

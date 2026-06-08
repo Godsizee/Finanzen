@@ -44,15 +44,19 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center min-h-[80vh] p-4 bg-slate-50">
-	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
+<div class="flex min-h-[80vh] flex-col items-center justify-center bg-slate-50 p-4">
+	<div class="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm">
 		{#if token}
-			<div class="text-center space-y-2">
-				<div class="inline-flex items-center justify-center w-12 h-12 bg-slate-100 rounded-full mb-2">
-					<ShieldCheck class="w-6 h-6 text-slate-900" />
+			<div class="space-y-2 text-center">
+				<div
+					class="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100"
+				>
+					<ShieldCheck class="h-6 w-6 text-slate-900" />
 				</div>
 				<h1 class="text-2xl font-bold text-slate-900">Neues Passwort vergeben</h1>
-				<p class="text-slate-500 text-sm">Lege ein neues, sicheres Passwort für deinen Account fest.</p>
+				<p class="text-sm text-slate-500">
+					Lege ein neues, sicheres Passwort für deinen Account fest.
+				</p>
 			</div>
 
 			<form onsubmit={handleSubmit} class="space-y-4">
@@ -76,21 +80,21 @@
 					type="submit"
 					disabled={loading}
 					variant="primary"
-					class="w-full h-12 flex justify-center items-center font-medium"
+					class="flex h-12 w-full items-center justify-center font-medium"
 				>
 					{loading ? 'Lade...' : 'Passwort zurücksetzen'}
 				</Button>
 			</form>
 		{:else}
-			<div class="text-center space-y-4">
-				<div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full">
-					<AlertTriangle class="w-6 h-6 text-red-600" />
+			<div class="space-y-4 text-center">
+				<div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+					<AlertTriangle class="h-6 w-6 text-red-600" />
 				</div>
 				<h1 class="text-2xl font-bold text-slate-900">Ungültiger Link</h1>
-				<p class="text-slate-500 text-sm">
+				<p class="text-sm text-slate-500">
 					Der Passwort-Reset-Link ist ungültig oder abgelaufen. Bitte fordere einen neuen Link an.
 				</p>
-				<Button onclick={() => goto('/forgot-password')} variant="primary" class="w-full h-12 mt-2">
+				<Button onclick={() => goto('/forgot-password')} variant="primary" class="mt-2 h-12 w-full">
 					Neuen Link anfordern
 				</Button>
 			</div>

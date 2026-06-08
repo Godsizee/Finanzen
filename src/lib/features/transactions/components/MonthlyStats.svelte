@@ -8,7 +8,9 @@
 	let currentMonth = $state(new Date());
 
 	// Localized name of current month
-	let monthLabel = $derived(currentMonth.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }));
+	let monthLabel = $derived(
+		currentMonth.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+	);
 
 	function handlePrevMonth() {
 		currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
@@ -22,15 +24,17 @@
 	let monthTransactions = $derived(
 		transactionStore.transactions.filter((tx) => {
 			const date = new Date(tx.date);
-			return date.getMonth() === currentMonth.getMonth() && 
-			       date.getFullYear() === currentMonth.getFullYear();
+			return (
+				date.getMonth() === currentMonth.getMonth() &&
+				date.getFullYear() === currentMonth.getFullYear()
+			);
 		})
 	);
 
 	// Total expenses in this month (exclude deposits)
 	let totalExpenses = $derived(
 		monthTransactions
-			.filter(tx => tx.split_mode !== 'deposit')
+			.filter((tx) => tx.split_mode !== 'deposit')
 			.reduce((acc, tx) => acc + tx.total_amount, 0)
 	);
 
@@ -69,7 +73,7 @@
 	// Calculate statistics by category
 	let stats = $derived.by(() => {
 		const map = new Map<string, number>();
-		
+
 		for (const cat of categoryStore.categories) {
 			map.set(cat.id, 0);
 		}
@@ -81,7 +85,7 @@
 				map.set(catId, (map.get(catId) || 0) + tx.total_amount);
 			} else {
 				// Fallback to "Sonstiges"
-				const sonstiges = categoryStore.categories.find(c => c.name === 'Sonstiges');
+				const sonstiges = categoryStore.categories.find((c) => c.name === 'Sonstiges');
 				if (sonstiges) {
 					map.set(sonstiges.id, (map.get(sonstiges.id) || 0) + tx.total_amount);
 				}
@@ -100,25 +104,25 @@
 					percent
 				};
 			})
-			.filter(s => s.amount > 0)
+			.filter((s) => s.amount > 0)
 			.sort((a, b) => b.amount - a.amount);
 	});
 </script>
 
-<Card class="flex flex-col gap-4 mt-6">
+<Card class="mt-6 flex flex-col gap-4">
 	<!-- Month Selector Header -->
 	<div class="flex items-center justify-between">
-		<button 
-			onclick={handlePrevMonth} 
-			class="p-2 -ml-2 rounded-full hover:bg-slate-100 active:scale-95 transition-all"
+		<button
+			onclick={handlePrevMonth}
+			class="-ml-2 rounded-full p-2 transition-all hover:bg-slate-100 active:scale-95"
 			aria-label="Vorheriger Monat"
 		>
 			<ChevronLeft size={20} class="text-slate-600" />
 		</button>
-		<span class="font-bold text-slate-800 text-sm select-none">{monthLabel}</span>
-		<button 
-			onclick={handleNextMonth} 
-			class="p-2 -mr-2 rounded-full hover:bg-slate-100 active:scale-95 transition-all"
+		<span class="text-sm font-bold text-slate-800 select-none">{monthLabel}</span>
+		<button
+			onclick={handleNextMonth}
+			class="-mr-2 rounded-full p-2 transition-all hover:bg-slate-100 active:scale-95"
 			aria-label="Nächster Monat"
 		>
 			<ChevronRight size={20} class="text-slate-600" />
@@ -128,35 +132,36 @@
 	<div class="h-px bg-slate-100"></div>
 
 	<!-- Total Expense Summary -->
-	<div class="flex justify-between items-center px-1">
+	<div class="flex items-center justify-between px-1">
 		<div class="flex items-center gap-2 text-slate-500">
 			<BarChart3 size={18} />
-			<span class="text-xs font-semibold uppercase tracking-wider">Monatsausgaben</span>
+			<span class="text-xs font-semibold tracking-wider uppercase">Monatsausgaben</span>
 		</div>
-		<span class="font-bold text-slate-900 text-lg">
+		<span class="text-lg font-bold text-slate-900">
 			{formatCurrency(totalExpenses)}
 		</span>
 	</div>
 
 	<!-- Category Breakdown Bars -->
-	<div class="flex flex-col gap-3 mt-1">
+	<div class="mt-1 flex flex-col gap-3">
 		{#if stats.length === 0}
-			<div class="text-center py-6 text-slate-400 text-xs">
-				Keine Ausgaben in diesem Monat.
-			</div>
+			<div class="py-6 text-center text-xs text-slate-400">Keine Ausgaben in diesem Monat.</div>
 		{:else}
 			{#each stats as item (item.id)}
 				<div class="flex flex-col gap-1.5">
 					<div class="flex justify-between text-xs font-medium">
 						<span class="text-slate-700">{item.name}</span>
-						<span class="text-slate-900 font-semibold">
+						<span class="font-semibold text-slate-900">
 							{formatCurrency(item.amount)} ({item.percent}%)
 						</span>
 					</div>
 					<!-- Custom Progress Bar -->
-					<div class="w-full h-2 rounded-full {bgMap[item.color] || 'bg-slate-100'} overflow-hidden">
-						<div 
-							class="h-full rounded-full transition-all duration-300 {colorMap[item.color] || 'bg-slate-500'}"
+					<div
+						class="h-2 w-full rounded-full {bgMap[item.color] || 'bg-slate-100'} overflow-hidden"
+					>
+						<div
+							class="h-full rounded-full transition-all duration-300 {colorMap[item.color] ||
+								'bg-slate-500'}"
 							style="width: {item.percent}%"
 						></div>
 					</div>

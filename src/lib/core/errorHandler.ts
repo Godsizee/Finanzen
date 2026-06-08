@@ -15,7 +15,7 @@ export class AppError extends Error {
 
 export function handleAppError(err: any): AppError {
 	console.error('Captured application error:', err);
-	
+
 	let message = 'Ein unerwarteter Fehler ist aufgetreten.';
 	let code = 'UNKNOWN';
 	let status = 0;

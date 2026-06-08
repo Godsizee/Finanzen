@@ -31,20 +31,26 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center min-h-[80vh] p-4 bg-slate-50">
-	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
+<div class="flex min-h-[80vh] flex-col items-center justify-center bg-slate-50 p-4">
+	<div class="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm">
 		<header class="flex items-center gap-2">
-			<button onclick={() => goto('/login')} class="p-2 -ml-2 rounded-full hover:bg-slate-100 transition-colors" aria-label="Zurück">
+			<button
+				onclick={() => goto('/login')}
+				class="-ml-2 rounded-full p-2 transition-colors hover:bg-slate-100"
+				aria-label="Zurück"
+			>
 				<ArrowLeft size={20} class="text-slate-900" />
 			</button>
 			<span class="text-sm font-semibold text-slate-900">Zurück zum Login</span>
 		</header>
 
 		{#if !sent}
-			<div class="text-center space-y-2">
-				<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
+			<div class="space-y-2 text-center">
+				<img src="/logo.svg" alt="FairShare Logo" class="mx-auto mb-2 h-16 w-16" />
 				<h1 class="text-2xl font-bold text-slate-900">Passwort vergessen?</h1>
-				<p class="text-slate-500 text-sm">Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.</p>
+				<p class="text-sm text-slate-500">
+					Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.
+				</p>
 			</div>
 
 			<form onsubmit={handleSubmit} class="space-y-4">
@@ -60,21 +66,26 @@
 					type="submit"
 					disabled={loading}
 					variant="primary"
-					class="w-full h-12 flex justify-center items-center font-medium"
+					class="flex h-12 w-full items-center justify-center font-medium"
 				>
 					{loading ? 'Lade...' : 'Link anfordern'}
 				</Button>
 			</form>
 		{:else}
-			<div class="text-center space-y-4">
-				<div class="inline-flex items-center justify-center w-12 h-12 bg-emerald-100 rounded-full">
-					<Mail class="w-6 h-6 text-emerald-600" />
+			<div class="space-y-4 text-center">
+				<div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+					<Mail class="h-6 w-6 text-emerald-600" />
 				</div>
 				<h1 class="text-2xl font-bold text-slate-900">E-Mail gesendet!</h1>
-				<p class="text-slate-500 text-sm">
-					Wir haben eine E-Mail an <strong class="text-slate-800">{email}</strong> gesendet. Bitte folge dem Link in der E-Mail, um dein Passwort zurückzusetzen.
+				<p class="text-sm text-slate-500">
+					Wir haben eine E-Mail an <strong class="text-slate-800">{email}</strong> gesendet. Bitte folge
+					dem Link in der E-Mail, um dein Passwort zurückzusetzen.
 				</p>
-				<Button onclick={() => goto('/login')} variant="secondary" class="w-full h-12 font-medium mt-2">
+				<Button
+					onclick={() => goto('/login')}
+					variant="secondary"
+					class="mt-2 h-12 w-full font-medium"
+				>
 					Zurück zum Login
 				</Button>
 			</div>

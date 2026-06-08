@@ -30,13 +30,17 @@ export function formatCurrency(cents: number): string {
  * @param userPaidAmount The amount the user actually paid in cents
  * @param splitMode "50_50" or "custom" (custom not fully implemented here yet)
  */
-export function calculateBalance(totalAmount: number, splitMode: string = '50_50', didIPay: boolean): number {
+export function calculateBalance(
+	totalAmount: number,
+	splitMode: string = '50_50',
+	didIPay: boolean
+): number {
 	if (splitMode === 'kasse') {
 		return 0; // Kasse beeinflusst nicht das Schulden-Konto zwischen den Usern
 	}
-	
+
 	const share = Math.round(totalAmount / 2);
-	
+
 	if (splitMode === 'deposit') {
 		// Einzahlung in die Kasse (Ich habe Geld aus MEINER Tasche in die gemeinsame Kasse gelegt)
 		// -> Partner schuldet mir 50% der Einzahlung
@@ -48,4 +52,3 @@ export function calculateBalance(totalAmount: number, splitMode: string = '50_50
 	// Partner zahlt 100€ (didIPay=false). Mein Share ist 50€. Ich schulde Partner 50€. Balance = -50.
 	return didIPay ? share : -share;
 }
-

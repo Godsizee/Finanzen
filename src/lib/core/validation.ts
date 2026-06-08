@@ -10,7 +10,10 @@ export function isValidPassword(password: string): { valid: boolean; message?: s
 	const hasLetter = /[a-zA-Z]/.test(password);
 	const hasNumber = /[0-9]/.test(password);
 	if (!hasLetter || !hasNumber) {
-		return { valid: false, message: 'Das Passwort muss mindestens einen Buchstaben und eine Zahl enthalten.' };
+		return {
+			valid: false,
+			message: 'Das Passwort muss mindestens einen Buchstaben und eine Zahl enthalten.'
+		};
 	}
 	return { valid: true };
 }

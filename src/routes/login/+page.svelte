@@ -22,10 +22,10 @@
 	}
 </script>
 
-<div class="flex flex-col items-center justify-center min-h-[80vh] p-4">
-	<div class="w-full max-w-md bg-white rounded-2xl shadow-sm p-6 space-y-6">
-		<div class="text-center space-y-2">
-			<img src="/logo.svg" alt="FairShare Logo" class="w-16 h-16 mx-auto mb-2" />
+<div class="flex min-h-[80vh] flex-col items-center justify-center p-4">
+	<div class="w-full max-w-md space-y-6 rounded-2xl bg-white p-6 shadow-sm">
+		<div class="space-y-2 text-center">
+			<img src="/logo.svg" alt="FairShare Logo" class="mx-auto mb-2 h-16 w-16" />
 			<h1 class="text-2xl font-bold text-slate-900">Willkommen zurück</h1>
 			<p class="text-slate-500">Logge dich ein, um FairShare zu nutzen.</p>
 		</div>
@@ -39,7 +39,7 @@
 					bind:value={email}
 					required
 					placeholder="deine@email.de"
-					class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 transition-shadow focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
@@ -51,14 +51,14 @@
 					bind:value={password}
 					required
 					placeholder="••••••••"
-					class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 transition-shadow"
+					class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 transition-shadow focus:ring-2 focus:ring-slate-900 focus:outline-none"
 				/>
 			</div>
 
 			<button
 				type="submit"
 				disabled={loading}
-				class="w-full py-3 px-4 bg-slate-900 text-white rounded-xl font-medium active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-medium text-white transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{loading ? 'Lade...' : 'Einloggen'}
 			</button>
@@ -67,10 +67,14 @@
 		<div class="flex flex-col gap-3 text-center text-sm text-slate-500">
 			<p>
 				Noch keinen Account?
-				<a href="/register" class="text-slate-900 font-medium hover:underline">Hier registrieren</a>
+				<a href="/register" class="font-medium text-slate-900 hover:underline">Hier registrieren</a>
 			</p>
 			<p>
-				<a href="/forgot-password" class="text-slate-600 hover:text-slate-900 transition-colors hover:underline">Passwort vergessen?</a>
+				<a
+					href="/forgot-password"
+					class="text-slate-600 transition-colors hover:text-slate-900 hover:underline"
+					>Passwort vergessen?</a
+				>
 			</p>
 		</div>
 	</div>

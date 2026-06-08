@@ -58,7 +58,7 @@ Folgende Dateien/Verzeichnisse werden streng blockiert:
 
 pb_data/ (Die tatsächliche SQLite-Datenbank von PocketBase inkl. Userdaten bleibt exklusiv auf dem Produktiv-Server in Coolify gemountet).
 
-.env, .env.*.local (Sämtliche Umgebungsvariablen, API-Keys und Secrets).
+.env, .env.\*.local (Sämtliche Umgebungsvariablen, API-Keys und Secrets).
 
 node_modules/, .svelte-kit/, build/, dist/ (Installierte Abhängigkeiten und Build-Artefakte).
 
@@ -146,16 +146,15 @@ Um Refactoring-Höllen bei zukünftigen Erweiterungen zu vermeiden, nutzen wir e
 
 src/
 ├── lib/
-│   ├── ui/               # Generische, dumme UI-Bausteine (Button, Input, Modal)
-│   ├── features/         # Nach Fachdomänen gegliedert (NICHT nach Tech!)
-│   │   ├── transactions/ # Alles rund um Ausgaben
-│   │   │   ├── components/  # z.B. TransactionCard.svelte
-│   │   │   ├── api.ts       # Repository Pattern (Kapselt PocketBase-Aufrufe)
-│   │   │   └── store.ts     # Svelte 5 State ($state) für Transaktionen
-│   │   └── settlements/  # Alles rund um Abrechnungen
-│   └── core/             # Domänen-unabhängige Logik (Math, Formatter, PocketBase-Client)
-├── routes/               # Nur Routing und Page-Assembly
-
+│ ├── ui/ # Generische, dumme UI-Bausteine (Button, Input, Modal)
+│ ├── features/ # Nach Fachdomänen gegliedert (NICHT nach Tech!)
+│ │ ├── transactions/ # Alles rund um Ausgaben
+│ │ │ ├── components/ # z.B. TransactionCard.svelte
+│ │ │ ├── api.ts # Repository Pattern (Kapselt PocketBase-Aufrufe)
+│ │ │ └── store.ts # Svelte 5 State ($state) für Transaktionen
+│ │ └── settlements/ # Alles rund um Abrechnungen
+│ └── core/ # Domänen-unabhängige Logik (Math, Formatter, PocketBase-Client)
+├── routes/ # Nur Routing und Page-Assembly
 
 5.1 Das Repository Pattern (Zukunftssicherheit)
 
@@ -214,6 +213,7 @@ Milestone 4: Abrechnung (Settlement-Logik).
 Milestone 5: CI/CD & Deployment (Aufsetzen von Coolify, GitHub Webhooks, strikte .gitignore etablieren).
 
 Milestone 6: Wiederkehrende Ausgaben / Abo-Management
+
 - [NEW] Collection `recurring_expenses` in PocketBase (erledigt)
 - [NEW] API-Schnittstelle in `src/lib/features/recurring/api.ts` für CRUD-Operationen der wiederkehrenden Ausgaben
 - [NEW] Svelte 5 Store `src/lib/features/recurring/store.svelte.ts` zur Verwaltung und automatischen Generierung von Transaktionen beim App-Start

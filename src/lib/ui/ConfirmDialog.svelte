@@ -41,8 +41,8 @@
 
 {#if show}
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div 
-		class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 z-[999] transition-opacity duration-300"
+	<div
+		class="fixed inset-0 z-[999] flex items-end justify-center bg-slate-900/40 p-4 backdrop-blur-sm transition-opacity duration-300 sm:items-center"
 		onclick={handleCancel}
 		onkeydown={handleKeyDown}
 		aria-modal="true"
@@ -51,14 +51,16 @@
 	>
 		<!-- svelte-ignore a11y_click_events_have_key_events -->
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div 
-			class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-xl space-y-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+		<div
+			class="animate-in slide-in-from-bottom sm:zoom-in-95 w-full max-w-md space-y-6 rounded-t-3xl bg-white p-6 shadow-xl duration-200 sm:rounded-2xl"
 			onclick={(e) => e.stopPropagation()}
 		>
-			<header class="flex justify-between items-start">
+			<header class="flex items-start justify-between">
 				<div class="flex items-center gap-3">
 					{#if variant === 'danger'}
-						<div class="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center shrink-0">
+						<div
+							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600"
+						>
 							<AlertTriangle size={20} />
 						</div>
 					{/if}
@@ -66,30 +68,26 @@
 						<h3 class="text-lg font-bold text-slate-900">{title}</h3>
 					</div>
 				</div>
-				<button 
-					onclick={handleCancel} 
-					class="p-1 text-slate-400 hover:bg-slate-100 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+				<button
+					onclick={handleCancel}
+					class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100"
 					aria-label="Schließen"
 				>
 					<X size={20} />
 				</button>
 			</header>
 
-			<p class="text-sm text-slate-500 leading-relaxed">{message}</p>
+			<p class="text-sm leading-relaxed text-slate-500">{message}</p>
 
-			<footer class="flex flex-col sm:flex-row gap-3 pt-2">
-				<Button 
-					variant={variant === 'danger' ? 'danger' : 'primary'} 
-					class="flex-1 min-h-[48px]" 
+			<footer class="flex flex-col gap-3 pt-2 sm:flex-row">
+				<Button
+					variant={variant === 'danger' ? 'danger' : 'primary'}
+					class="min-h-[48px] flex-1"
 					onclick={handleConfirm}
 				>
 					{confirmText}
 				</Button>
-				<Button 
-					variant="secondary" 
-					class="flex-1 min-h-[48px]" 
-					onclick={handleCancel}
-				>
+				<Button variant="secondary" class="min-h-[48px] flex-1" onclick={handleCancel}>
 					{cancelText}
 				</Button>
 			</footer>

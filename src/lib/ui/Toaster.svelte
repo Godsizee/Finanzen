@@ -4,14 +4,16 @@
 	import { fly } from 'svelte/transition';
 </script>
 
-<div class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none">
+<div
+	class="pointer-events-none fixed top-4 left-1/2 z-[100] flex w-full max-w-sm -translate-x-1/2 flex-col gap-2 px-4"
+>
 	{#each toast.toasts as t (t.id)}
-		<div 
+		<div
 			transition:fly={{ y: -20, duration: 250 }}
-			class="flex items-center justify-between gap-3 p-4 rounded-2xl shadow-md border pointer-events-auto backdrop-blur-md transition-all
-				{t.type === 'success' ? 'bg-emerald-600 border-emerald-700 text-white' : ''}
-				{t.type === 'error' ? 'bg-red-600 border-red-700 text-white' : ''}
-				{t.type === 'info' ? 'bg-slate-800 border-slate-900 text-white' : ''}
+			class="pointer-events-auto flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-md backdrop-blur-md transition-all
+				{t.type === 'success' ? 'border-emerald-700 bg-emerald-600 text-white' : ''}
+				{t.type === 'error' ? 'border-red-700 bg-red-600 text-white' : ''}
+				{t.type === 'info' ? 'border-slate-900 bg-slate-800 text-white' : ''}
 			"
 		>
 			<div class="flex items-center gap-3">
@@ -24,13 +26,13 @@
 				{/if}
 				<span class="text-sm font-medium">{t.message}</span>
 			</div>
-			
+
 			{#if t.actionName && t.actionFn}
-				<button 
-					class="text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+				<button
+					class="shrink-0 rounded-lg bg-white/20 px-3 py-1.5 text-xs font-bold transition-colors hover:bg-white/30"
 					onclick={() => {
 						t.actionFn?.();
-						toast.toasts = toast.toasts.filter(toastItem => toastItem.id !== t.id);
+						toast.toasts = toast.toasts.filter((toastItem) => toastItem.id !== t.id);
 					}}
 				>
 					{t.actionName}
