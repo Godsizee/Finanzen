@@ -474,6 +474,11 @@
 												class="inline-flex items-center rounded-md bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-800"
 												>Nur Ich</span
 											>
+										{:else if tx.split_mode === 'own_costs'}
+											<span
+												class="inline-flex items-center rounded-md bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-800"
+												>Selbst getragen</span
+											>
 										{:else if tx.split_mode === 'partner'}
 											<span
 												class="inline-flex items-center rounded-md bg-orange-100 px-1.5 py-0.5 text-[9px] font-bold text-orange-800"
@@ -578,6 +583,11 @@
 											<span
 												class="inline-flex items-center rounded-md bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-800"
 												>Nur Ich</span
+											>
+										{:else if tx.split_mode === 'own_costs'}
+											<span
+												class="inline-flex items-center rounded-md bg-purple-100 px-1.5 py-0.5 text-[9px] font-bold text-purple-800"
+												>Selbst getragen</span
 											>
 										{:else if tx.split_mode === 'partner'}
 											<span

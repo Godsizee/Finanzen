@@ -58,6 +58,16 @@ describe('math.ts', () => {
 			expect(calculateTransactionBalanceChange(tx, myId, partnerId, 0.5)).toBe(1000);
 		});
 
+		it('own_costs: I paid, balance change 0', () => {
+			const tx = { ...txBase, paid_by: myId, split_mode: 'own_costs' };
+			expect(calculateTransactionBalanceChange(tx, myId, partnerId, 0.5)).toBe(0);
+		});
+
+		it('own_costs: Partner paid, balance change 0', () => {
+			const tx = { ...txBase, paid_by: partnerId, split_mode: 'own_costs' };
+			expect(calculateTransactionBalanceChange(tx, myId, partnerId, 0.5)).toBe(0);
+		});
+
 		it('custom: amount split', () => {
 			const tx = {
 				...txBase,

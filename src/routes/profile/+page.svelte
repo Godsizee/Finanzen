@@ -33,7 +33,7 @@
 	let budgetInput = $state('');
 	let savingBudget = $state(false);
 
-	let costSharingMode = $state<'50_50' | 'income_ratio'>('50_50');
+	let costSharingMode = $state<'own_costs' | '50_50' | 'income_ratio'>('own_costs');
 	let costSharingPercent = $state(50);
 	let savingCostSharing = $state(false);
 
@@ -152,7 +152,7 @@
 				? (authStore.currentUser.income / 100).toString()
 				: '';
 			const serverMode = authStore.currentUser.cost_sharing_mode;
-			costSharingMode = serverMode === 'income_ratio' ? 'income_ratio' : '50_50';
+			costSharingMode = serverMode === 'income_ratio' ? 'income_ratio' : serverMode === '50_50' ? '50_50' : 'own_costs';
 			costSharingPercent = authStore.currentUser.cost_sharing_percent || 50;
 		}
 		const storedBudget = localStorage.getItem('fairshare_monthly_budget');
@@ -384,6 +384,16 @@
 			<div class="flex rounded-xl bg-slate-100 p-1">
 				<button
 					type="button"
+					onclick={() => (costSharingMode = 'own_costs')}
+					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
+					'own_costs'
+						? 'bg-white text-slate-900 shadow-sm'
+						: 'text-slate-500 hover:text-slate-700'}"
+				>
+					Jeder zahlt selbst
+				</button>
+				<button
+					type="button"
 					onclick={() => (costSharingMode = '50_50')}
 					class="flex-1 rounded-lg py-2 text-sm font-medium transition-colors {costSharingMode ===
 					'50_50'
@@ -400,7 +410,7 @@
 						? 'bg-white text-slate-900 shadow-sm'
 						: 'text-slate-500 hover:text-slate-700'}"
 				>
-					Einkommensbasierter Split
+					Einkommensbasiert
 				</button>
 			</div>
 
@@ -439,11 +449,17 @@
 						</p>
 					</div>
 				{/if}
-			{:else}
+			{:else if costSharingMode === '50_50'}
 				<div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
 					<p class="text-center text-sm text-slate-600">
 						Kosten werden 50/50 aufgeteilt. Schulden und Guthaben werden weiterhin ganz normal im
 						Dashboard berechnet.
+					</p>
+				</div>
+			{:else}
+				<div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+					<p class="text-center text-sm text-slate-600">
+						Jeder trägt seine eingetragenen Kosten selbst. Der Partner sieht die Ausgaben, aber sie beeinflussen den Ausgleichssaldo nicht.
 					</p>
 				</div>
 			{/if}

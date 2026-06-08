@@ -106,7 +106,7 @@
 		const totalCents = toCents(amount);
 
 		let paidBy = authStore.currentUser?.id;
-		let splitMode = '50_50';
+		let splitMode = rule?.split_mode || authStore.currentUser?.cost_sharing_mode || 'own_costs';
 
 		if (payer === 'partner') {
 			if (!partnerStore.partnerUser) {
@@ -117,6 +117,10 @@
 			paidBy = partnerStore.partnerUser.id;
 		} else if (payer === 'kasse') {
 			splitMode = 'kasse';
+		} else {
+			if (splitMode === 'kasse') {
+				splitMode = authStore.currentUser?.cost_sharing_mode || 'own_costs';
+			}
 		}
 
 		const id = ruleId;

@@ -50,6 +50,9 @@ export function getTransactionShare(
 	if (splitMode === 'partner') {
 		return 0;
 	}
+	if (splitMode === 'own_costs') {
+		return paidBy === myId ? totalAmount : 0;
+	}
 
 	if (splitMode === 'custom' && metadata) {
 		try {

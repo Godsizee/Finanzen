@@ -111,10 +111,11 @@
 			</label>
 			<select
 				id="desktop-mode-select"
-				value={authStore.currentUser?.cost_sharing_mode || '50_50'}
+				value={authStore.currentUser?.cost_sharing_mode || 'own_costs'}
 				onchange={handleModeChange}
 				class="w-full rounded-lg bg-slate-800 border border-slate-700 text-white px-3 py-2 focus:outline-none cursor-pointer text-xs font-medium transition-colors hover:border-slate-600 animate-none"
 			>
+				<option value="own_costs">Jeder zahlt selbst</option>
 				<option value="50_50">50/50 Split</option>
 				<option value="income_ratio">Einkommensbasierter Split</option>
 			</select>

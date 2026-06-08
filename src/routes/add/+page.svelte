@@ -47,10 +47,11 @@
 	let amount = $state('');
 	let note = $state('');
 	let payer = $state<'ich' | 'partner' | 'kasse'>('ich');
-	let splitMode = $state('50_50'); // 50_50, income_ratio, me, partner, custom
+	let splitMode = $state('own_costs'); // 50_50, income_ratio, me, partner, custom, own_costs
 	$effect(() => {
 		if (authStore.currentUser) {
-			splitMode = authStore.currentUser.cost_sharing_mode === 'income_ratio' ? 'income_ratio' : '50_50';
+			const mode = authStore.currentUser.cost_sharing_mode;
+			splitMode = mode === 'income_ratio' ? 'income_ratio' : mode === '50_50' ? '50_50' : 'own_costs';
 		}
 	});
 	let selectedCategoryId = $state<string>('');
@@ -482,6 +483,7 @@
 							bind:value={splitMode}
 							class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 						>
+							<option value="own_costs">Jeder zahlt selbst</option>
 							<option value="50_50">Geteilt (50:50)</option>
 							{#if partnerStore.partnerStatus === 'active'}
 								<option value="income_ratio">Nach Nettoeinkommen (Einkommensbasiert)</option>

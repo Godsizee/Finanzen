@@ -343,6 +343,7 @@
 						bind:value={splitMode}
 						class="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 transition-all focus:ring-2 focus:ring-slate-900 focus:outline-none"
 					>
+						<option value="own_costs">Jeder zahlt selbst</option>
 						<option value="50_50">Geteilt (50:50)</option>
 						{#if partnerStore.partnerStatus === 'active'}
 							<option value="income_ratio">Nach Nettoeinkommen (Einkommensbasiert)</option>

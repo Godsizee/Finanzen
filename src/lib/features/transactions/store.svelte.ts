@@ -83,12 +83,12 @@ class TransactionStore {
 		if (!myId) return 0;
 
 		const partnerUser = partnerStore.partnerUser;
-		const globalMode = currentUser.cost_sharing_mode || '50_50';
+		const globalMode = currentUser.cost_sharing_mode || 'own_costs';
 
 		const myIncome = currentUser.income || 0;
 		const partnerIncome = partnerUser?.income || 0;
 		const totalIncome = myIncome + partnerIncome;
-		const myRatio = (globalMode === '50_50' || totalIncome <= 0) ? 0.5 : myIncome / totalIncome;
+		const myRatio = (globalMode === '50_50' || globalMode === 'own_costs' || totalIncome <= 0) ? 0.5 : myIncome / totalIncome;
 
 		return this.unsettledTransactions.reduce((acc, tx) => {
 			let txSplitMode = tx.split_mode;
