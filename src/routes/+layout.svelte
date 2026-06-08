@@ -9,8 +9,11 @@
 
 	import { onMount } from 'svelte';
 	import { pb } from '$lib/core/pb';
+	import Navigation from '$lib/ui/Navigation.svelte';
 
 	let { children } = $props();
+	
+	let isPublicRoute = $derived(['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes($page.url.pathname));
 
 	onMount(async () => {
 		if (authStore.isLoggedIn) {
@@ -26,7 +29,6 @@
 	// Auth Guard & Partner Load
 	$effect(() => {
 		const path = $page.url.pathname;
-		const isPublicRoute = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'].includes(path);
 		
 		if (!authStore.isLoggedIn) {
 			if (!isPublicRoute) {
@@ -53,8 +55,15 @@
 
 <div class="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-emerald-200">
 	<Toaster />
-	<main class="w-full max-w-lg mx-auto min-h-screen pb-20 relative shadow-sm bg-white">
-		{@render children()}
-	</main>
+	
+	{#if authStore.isLoggedIn && !isPublicRoute && $page.url.pathname !== '/onboarding'}
+		<Navigation />
+	{/if}
+
+	<div class="md:pl-64 flex flex-col min-h-screen">
+		<main class="w-full max-w-lg mx-auto flex-1 pb-24 relative shadow-sm bg-white md:max-w-2xl md:my-6 md:rounded-2xl md:border md:border-slate-200 md:min-h-0">
+			{@render children()}
+		</main>
+	</div>
 </div>
 

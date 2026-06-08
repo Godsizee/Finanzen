@@ -110,7 +110,7 @@ class TransactionStore {
 			const record = await transactionApi.create(data);
 			// Replace optimistic record with real one
 			this.transactions = this.transactions.map((tx) => (tx.id === tempId ? record : tx));
-			toast.success('Ausgabe erfolgreich gespeichert!');
+			return record;
 		} catch (err: any) {
 			// Rollback
 			this.transactions = this.transactions.filter((tx) => tx.id !== tempId);

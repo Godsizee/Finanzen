@@ -6,6 +6,7 @@
 		inputmode,
 		placeholder = '',
 		required = false,
+		autofocus = false,
 		class: className = ''
 	}: {
 		value: any;
@@ -14,6 +15,7 @@
 		inputmode?: 'text' | 'decimal' | 'numeric';
 		placeholder?: string;
 		required?: boolean;
+		autofocus?: boolean;
 		class?: string;
 	} = $props();
 </script>
@@ -27,6 +29,7 @@
 		{inputmode}
 		{placeholder}
 		{required}
+		{autofocus}
 		bind:value
 		class="min-h-[48px] px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
 	/>

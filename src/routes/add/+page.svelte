@@ -32,6 +32,7 @@
 	let note = $state('');
 	let payer = $state<'ich' | 'partner' | 'kasse'>('ich');
 	let selectedCategoryId = $state<string>('');
+	let showAdvanced = $state(false);
 
 	// Adjust default payer and category when switching type
 	$effect(() => {
@@ -88,7 +89,7 @@
 			}
 		}
 
-		await transactionStore.addTransaction({
+		const record = await transactionStore.addTransaction({
 			total_amount: totalCents,
 			date: new Date().toISOString(),
 			paid_by: paidBy as string,
@@ -96,6 +97,12 @@
 			note: note || (type === 'expense' ? 'Ausgabe' : 'Einzahlung'),
 			category: type === 'expense' ? selectedCategoryId : undefined
 		});
+
+		if (record) {
+			toast.success('Erfolgreich gespeichert', 'Rückgängig', async () => {
+				await transactionStore.deleteTransaction(record.id);
+			});
+		}
 
 		loading = false;
 		goto('/');
@@ -137,16 +144,25 @@
 			inputmode="decimal" 
 			placeholder="0,00" 
 			required 
+			autofocus
 			bind:value={amount} 
-			class="text-lg"
+			class="text-4xl font-bold mb-4"
 		/>
 
-		<Input 
-			label={type === 'expense' ? 'Wofür?' : 'Beschreibung (optional)'} 
-			type="text" 
-			placeholder={type === 'expense' ? 'Supermarkt, Tanken...' : 'Monatlicher Beitrag...'} 
-			bind:value={note} 
-		/>
+		{#if !showAdvanced}
+			<button type="button" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 text-left mb-2" onclick={() => showAdvanced = true}>
+				+ Kategorie & Aufteilung ändern
+			</button>
+		{/if}
+
+		{#if showAdvanced}
+			<div class="animate-in fade-in slide-in-from-top-4 duration-300 flex flex-col gap-6">
+				<Input 
+					label={type === 'expense' ? 'Wofür?' : 'Beschreibung (optional)'} 
+					type="text" 
+					placeholder={type === 'expense' ? 'Supermarkt, Tanken...' : 'Monatlicher Beitrag...'} 
+					bind:value={note} 
+				/>
 
 		{#if type === 'expense'}
 			<div class="flex flex-col gap-2 mt-2">
@@ -168,41 +184,42 @@
 			</div>
 		{/if}
 
-		<div class="flex flex-col gap-2 mt-2">
-			<span class="text-sm font-medium text-slate-700">
-				{type === 'expense' ? 'Wer hat bezahlt?' : 'Wer zahlt ein?'}
-			</span>
-			<div class="flex gap-2">
-				<Button 
-					type="button" 
-					variant={payer === 'ich' ? 'primary' : 'secondary'} 
-					class="flex-1"
-					onclick={() => payer = 'ich'}
-				>
-					Ich
-				</Button>
-				{#if partnerStore.partnerStatus === 'active'}
-				<Button 
-					type="button" 
-					variant={payer === 'partner' ? 'primary' : 'secondary'} 
-					class="flex-1"
-					onclick={() => payer = 'partner'}
-				>
-					Partner
-				</Button>
-				{/if}
-				{#if type === 'expense'}
+			<div class="flex flex-col gap-2 mt-2">
+				<span class="text-sm font-medium text-slate-700">
+					{type === 'expense' ? 'Wer hat bezahlt?' : 'Wer zahlt ein?'}
+				</span>
+				<div class="flex gap-2">
 					<Button 
 						type="button" 
-						variant={payer === 'kasse' ? 'primary' : 'secondary'} 
+						variant={payer === 'ich' ? 'primary' : 'secondary'} 
 						class="flex-1"
-						onclick={() => payer = 'kasse'}
+						onclick={() => payer = 'ich'}
 					>
-						Kasse
+						Ich
 					</Button>
-				{/if}
+					{#if partnerStore.partnerStatus === 'active'}
+					<Button 
+						type="button" 
+						variant={payer === 'partner' ? 'primary' : 'secondary'} 
+						class="flex-1"
+						onclick={() => payer = 'partner'}
+					>
+						Partner
+					</Button>
+					{/if}
+					{#if type === 'expense'}
+						<Button 
+							type="button" 
+							variant={payer === 'kasse' ? 'primary' : 'secondary'} 
+							class="flex-1"
+							onclick={() => payer = 'kasse'}
+						>
+							Kasse
+						</Button>
+					{/if}
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		<div class="mt-auto pt-6">
 			<Button type="submit" variant="primary" class="w-full">

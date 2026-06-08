@@ -8,6 +8,7 @@
 	import { toast } from '$lib/core/toastStore.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Card from '$lib/ui/Card.svelte';
+	import ConfirmDialog from '$lib/ui/ConfirmDialog.svelte';
 	import { ArrowLeft, CheckCircle2, History } from '@lucide/svelte';
 
 	let unsettled = $derived(transactionStore.unsettledTransactions);
@@ -15,8 +16,10 @@
 	let settledTxs = $derived(transactionStore.transactions.filter(tx => !!tx.settlement_id));
 	
 	let loading = $state(false);
+	let showConfirm = $state(false);
+	let activeTab = $state<'offen' | 'abgerechnet'>('offen');
 
-	async function handleSettle() {
+	function handleSettleClick() {
 		if (unsettled.length === 0) return;
 		if (myBalance === 0) {
 			toast.info('Ihr seid quitt, keine Abrechnung nötig.');
@@ -26,7 +29,10 @@
 			toast.error('Kein Partner für die Abrechnung gefunden.');
 			return;
 		}
+		showConfirm = true;
+	}
 
+	async function performSettle() {
 		loading = true;
 		try {
 			const amount = Math.abs(myBalance);
@@ -46,9 +52,16 @@
 			toast.error('Fehler bei der Abrechnung: ' + e.message);
 		} finally {
 			loading = false;
+			showConfirm = false;
+			activeTab = 'abgerechnet';
 		}
 	}
-
+	
+	let settleMessage = $derived.by(() => {
+		if (myBalance > 0) return `Dein Partner überweist dir ${formatCurrency(myBalance)}.`;
+		if (myBalance < 0) return `Du überweist deinem Partner ${formatCurrency(Math.abs(myBalance))}.`;
+		return 'Ihr seid quitt.';
+	});
 </script>
 
 <div class="p-4 pt-8 h-full flex flex-col bg-slate-50">
@@ -71,18 +84,36 @@
 				<span class="text-emerald-900 font-bold text-lg">{formatCurrency(Math.abs(myBalance))}</span>
 			</div>
 			
-			<Button onclick={handleSettle} class="w-full" variant="primary">
+			<Button onclick={handleSettleClick} class="w-full" variant="primary">
 				<CheckCircle2 size={18} class="mr-2" />
 				{loading ? 'Rechne ab...' : 'Jetzt abrechnen'}
 			</Button>
 		</Card>
 	{/if}
 
-	<div class="flex flex-col gap-6">
-		<section>
-			<h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Offene Ausgaben</h3>
+	<!-- Segment Control for Tabs -->
+	<div class="flex bg-slate-200 p-1 rounded-xl mb-6 mt-2">
+		<button 
+			type="button"
+			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {activeTab === 'offen' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => activeTab = 'offen'}
+		>
+			Offen ({unsettled.length})
+		</button>
+		<button 
+			type="button"
+			class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all {activeTab === 'abgerechnet' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+			onclick={() => activeTab = 'abgerechnet'}
+		>
+			Abgerechnet ({settledTxs.length})
+		</button>
+	</div>
+
+	<div class="flex flex-col gap-6 pb-24">
+		{#if activeTab === 'offen'}
+		<section class="animate-in fade-in duration-300">
 			{#if unsettled.length === 0}
-				<p class="text-sm text-slate-400 px-1">Keine offenen Ausgaben.</p>
+				<p class="text-sm text-slate-400 px-1 text-center py-8">Keine offenen Ausgaben.</p>
 			{/if}
 			<div class="flex flex-col gap-3">
 				{#each unsettled as tx (tx.id)}
@@ -114,13 +145,12 @@
 				{/each}
 			</div>
 		</section>
+		{/if}
 
-		<section class="opacity-70">
-			<h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
-				<History size={16} /> Abgerechnet
-			</h3>
+		{#if activeTab === 'abgerechnet'}
+		<section class="opacity-80 animate-in fade-in duration-300">
 			{#if settledTxs.length === 0}
-				<p class="text-sm text-slate-400 px-1">Bisher keine Historie.</p>
+				<p class="text-sm text-slate-400 px-1 text-center py-8">Bisher keine Historie.</p>
 			{/if}
 			<div class="flex flex-col gap-3">
 				{#each settledTxs as tx (tx.id)}
@@ -152,5 +182,14 @@
 				{/each}
 			</div>
 		</section>
+		{/if}
 	</div>
 </div>
+
+<ConfirmDialog
+	bind:show={showConfirm}
+	title="Abrechnung abschließen"
+	message="{settleMessage} Enthalten sind {unsettled.length} offene Buchungen."
+	confirmText="Abrechnung abschließen"
+	onconfirm={performSettle}
+/>
