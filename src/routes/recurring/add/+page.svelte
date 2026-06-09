@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { transactionStore } from '$lib/features/transactions/store.svelte';
 	import { recurringStore } from '$lib/features/recurring/store.svelte';
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
@@ -52,8 +54,27 @@
 
 	let loading = $state(false);
 
-	onMount(() => {
+	onMount(async () => {
 		categoryStore.load();
+		await transactionStore.load();
+
+		const fromTxId = $page.url.searchParams.get('from_tx');
+		if (fromTxId) {
+			const tx = transactionStore.transactions.find((t) => t.id === fromTxId);
+			if (tx) {
+				name = tx.note || '';
+				amount = (tx.total_amount / 100).toString().replace('.', ',');
+				selectedCategoryId = tx.category || '';
+				if (tx.paid_by) {
+					payer = tx.paid_by === authStore.currentUser?.id ? 'ich' : 'partner';
+				}
+				if (tx.date) {
+					const txDate = new Date(tx.date);
+					dayOfMonth = txDate.getDate();
+					startDate = txDate.toISOString().slice(0, 10);
+				}
+			}
+		}
 	});
 
 	$effect(() => {
