@@ -319,7 +319,7 @@
 	<!-- Floating Action Button -->
 	<a
 		href="/add"
-		class="fixed bottom-6 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition-transform hover:bg-slate-800 active:scale-95"
+		class="fixed bottom-6 left-1/2 z-50 hidden md:flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition-transform hover:bg-slate-800 active:scale-95"
 		aria-label="Neue Ausgabe hinzufügen"
 	>
 		<Plus size={24} />
