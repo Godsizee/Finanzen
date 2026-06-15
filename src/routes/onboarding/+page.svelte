@@ -14,9 +14,10 @@
 	let name = $state(authStore.currentUser?.name || '');
 	let savingName = $state(false);
 
-	// Step 2: Income
+	// Step 2: Income + Cost Sharing Mode
 	let income = $state('');
 	let savingIncome = $state(false);
+	let costSharingMode = $state<'own_costs' | '50_50' | 'income_ratio'>('50_50');
 
 	// Step 3: Partner Email
 	let partnerEmail = $state('');
@@ -41,8 +42,16 @@
 			}
 		} else if (step === 2) {
 			if (!income.trim()) {
-				// Allow skipping income but let's encourage setting it
-				step = 3;
+				savingIncome = true;
+				try {
+					const updated = await authApi.updateProfile({ cost_sharing_mode: costSharingMode });
+					authStore.currentUser = updated;
+					step = 3;
+				} catch (err: any) {
+					toast.error('Fehler beim Speichern: ' + err.message);
+				} finally {
+					savingIncome = false;
+				}
 				return;
 			}
 			savingIncome = true;
@@ -53,7 +62,7 @@
 					return;
 				}
 				const cents = Math.round(parsed * 100);
-				const updated = await authApi.updateProfile({ income: cents });
+				const updated = await authApi.updateProfile({ income: cents, cost_sharing_mode: costSharingMode });
 				authStore.currentUser = updated;
 				step = 3;
 			} catch (err: any) {
@@ -225,6 +234,38 @@
 							bind:value={income}
 							placeholder="z.B. 2500"
 						/>
+					</div>
+
+					<div class="space-y-2">
+						<span class="text-sm font-medium text-slate-700">Kostenaufteilung</span>
+						<div class="flex rounded-xl bg-slate-100 p-1">
+							<button
+								type="button"
+								onclick={() => (costSharingMode = 'own_costs')}
+								class="flex-1 rounded-lg py-2 text-xs font-medium transition-colors {costSharingMode === 'own_costs' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}"
+							>
+								Jeder selbst
+							</button>
+							<button
+								type="button"
+								onclick={() => (costSharingMode = '50_50')}
+								class="flex-1 rounded-lg py-2 text-xs font-medium transition-colors {costSharingMode === '50_50' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}"
+							>
+								50/50
+							</button>
+							<button
+								type="button"
+								onclick={() => (costSharingMode = 'income_ratio')}
+								class="flex-1 rounded-lg py-2 text-xs font-medium transition-colors {costSharingMode === 'income_ratio' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}"
+							>
+								Einkommensbasiert
+							</button>
+						</div>
+						{#if costSharingMode === 'income_ratio'}
+							<p class="text-xs text-amber-700">
+								Tragt beide euer Einkommen ein, damit das Verhältnis berechnet werden kann.
+							</p>
+						{/if}
 					</div>
 
 					<div class="flex gap-3">

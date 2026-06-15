@@ -55,6 +55,17 @@ async function updateSchema() {
 			usersUpdated = true;
 		}
 
+		const hasCostSharingModeField = usersCollection.fields.some((field) => field.name === 'cost_sharing_mode');
+		if (!hasCostSharingModeField) {
+			usersCollection.fields.push({
+				name: 'cost_sharing_mode',
+				type: 'text',
+				required: false,
+				presentable: false
+			});
+			usersUpdated = true;
+		}
+
 		const usersRules = {
 			listRule: 'id = @request.auth.id || partner = @request.auth.id',
 			viewRule: 'id = @request.auth.id || partner = @request.auth.id',

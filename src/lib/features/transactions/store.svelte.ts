@@ -7,12 +7,14 @@ import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 import { recurringStore } from '$lib/features/recurring/store.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
 import { offlineStore } from '$lib/core/offlineStore.svelte';
+import { browser } from '$app/environment';
 
 class TransactionStore {
 	transactions = $state<RecordModel[]>([]);
 	loading = $state(false);
 	error = $state<string | null>(null);
 	private unsubscribe: (() => void) | null = null;
+	private syncListenerAdded = false;
 
 	initRealtime() {
 		if (this.unsubscribe) return;
@@ -27,6 +29,45 @@ class TransactionStore {
 				this.transactions = this.transactions.filter((tx) => tx.id !== e.record.id);
 			}
 		});
+	}
+
+	private initSync() {
+		if (!browser || this.syncListenerAdded) return;
+		this.syncListenerAdded = true;
+		window.addEventListener('fairshare_sync_queue', () => this.syncQueueOnline());
+	}
+
+	async syncQueueOnline() {
+		const queue = [...offlineStore.queue];
+		if (queue.length === 0) return;
+
+		for (const action of queue) {
+			try {
+				if (action.type === 'CREATE_TX') {
+					const { _tempId, ...data } = action.payload as TransactionCreate & { _tempId?: string };
+					const record = await transactionApi.create(data);
+					offlineStore.removeAction(action.id);
+					if (_tempId) {
+						this.transactions = this.transactions.map((tx) =>
+							tx.id === _tempId ? record : tx
+						);
+					}
+				} else if (action.type === 'UPDATE_TX') {
+					const { id, data } = action.payload as { id: string; data: Partial<TransactionCreate> };
+					const record = await transactionApi.update(id, data);
+					offlineStore.removeAction(action.id);
+					this.transactions = this.transactions.map((tx) => (tx.id === id ? record : tx));
+				} else if (action.type === 'DELETE_TX') {
+					const { id } = action.payload as { id: string };
+					await transactionApi.delete(id);
+					offlineStore.removeAction(action.id);
+				}
+			} catch (err: any) {
+				console.error('Sync-Fehler bei Aktion', action.id, err);
+				toast.error('Synchronisation fehlgeschlagen. Wird beim nächsten Online-Zugang erneut versucht.');
+				break;
+			}
+		}
 	}
 
 	unsettledTransactions = $derived(this.transactions.filter((tx) => !tx.settlement_id));
@@ -108,6 +149,7 @@ class TransactionStore {
 	async load() {
 		this.loading = true;
 		this.error = null;
+		this.initSync();
 		try {
 			// Trigger generation of due recurring expenses
 			try {
@@ -139,7 +181,7 @@ class TransactionStore {
 			return record;
 		} catch (err: any) {
 			if (!navigator.onLine || err.status === 0 || err.isAbort) {
-				offlineStore.addAction({ type: 'CREATE_TX', payload: data });
+				offlineStore.addAction({ type: 'CREATE_TX', payload: { ...data, _tempId: tempId } });
 				toast.info('Offline gespeichert. Wird synchronisiert, sobald du wieder online bist.');
 				return optimisticRecord;
 			}
@@ -161,15 +203,16 @@ class TransactionStore {
 		);
 
 		try {
-			// Update in background
 			await Promise.all(
 				unsettled.map((tx) => transactionApi.update(tx.id, { settlement_id: settlementId }))
 			);
+			toast.success('Abrechnung abgeschlossen.');
 		} catch (err: any) {
-			// Rollback
 			this.transactions = originalTxs;
 			const appErr = handleAppError(err);
 			this.error = appErr.message;
+			toast.error('Abrechnung fehlgeschlagen: ' + appErr.message);
+			throw err;
 		}
 	}
 

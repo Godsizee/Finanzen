@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { Home, History, Plus, Repeat, User } from '@lucide/svelte';
+	import { Home, History, Plus, Repeat, User, WifiOff } from '@lucide/svelte';
 	import { page } from '$app/stores';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { authApi } from '$lib/features/auth/api';
 	import { pb } from '$lib/core/pb';
 	import { toast } from '$lib/core/toastStore.svelte';
+	import { offlineStore } from '$lib/core/offlineStore.svelte';
 
 	let currentPath = $derived($page.url.pathname);
+	let queueCount = $derived(offlineStore.queue.length);
 
 	const links = [
 		{ href: '/', icon: Home, label: 'Übersicht' },
@@ -37,6 +39,14 @@
 		}
 	}
 </script>
+
+<!-- Mobile Offline Sync Banner -->
+{#if queueCount > 0}
+	<div class="fixed right-0 bottom-16 left-0 z-40 flex items-center justify-center gap-1.5 bg-amber-500 py-1.5 px-4 text-xs font-medium text-white md:hidden">
+		<WifiOff class="h-3 w-3 shrink-0" />
+		{queueCount} {queueCount === 1 ? 'Buchung wartet' : 'Buchungen warten'} auf Synchronisation
+	</div>
+{/if}
 
 <!-- Mobile Bottom Navigation -->
 <nav
@@ -102,6 +112,14 @@
 			{/if}
 		{/each}
 	</nav>
+
+	<!-- Desktop Offline Sync Indicator -->
+	{#if queueCount > 0}
+		<div class="mx-4 mb-2 flex items-center gap-2 rounded-lg bg-amber-500/20 px-3 py-2 text-xs font-medium text-amber-300">
+			<WifiOff class="h-3 w-3 shrink-0" />
+			{queueCount} {queueCount === 1 ? 'Buchung' : 'Buchungen'} offline
+		</div>
+	{/if}
 
 	<!-- Cost Sharing Mode Switcher in Desktop Sidebar -->
 	<div class="border-t border-slate-800 p-4 mt-auto">
