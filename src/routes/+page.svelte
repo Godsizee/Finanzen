@@ -4,6 +4,7 @@
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { recurringStore } from '$lib/features/recurring/store.svelte';
 	import HeroCard from '$lib/features/transactions/components/HeroCard.svelte';
+	import PartnerActivity from '$lib/features/transactions/components/PartnerActivity.svelte';
 	import FairShareAlert from '$lib/features/transactions/components/FairShareAlert.svelte';
 	import MonthlyStats from '$lib/features/transactions/components/MonthlyStats.svelte';
 	import TransactionList from '$lib/features/transactions/components/TransactionList.svelte';
@@ -152,6 +153,7 @@
 
 	<div class="flex flex-col gap-4 overflow-y-auto pb-24">
 		<HeroCard />
+		<PartnerActivity />
 
 		{#if monthlyBudget > 0}
 			<Card class="flex flex-col gap-3 p-4 max-[340px]:p-3">

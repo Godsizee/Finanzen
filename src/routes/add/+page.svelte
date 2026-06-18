@@ -561,7 +561,12 @@
 		{/if}
 
 		<div class="mt-auto pt-6">
-			<Button type="submit" variant="primary" class="w-full">
+			<Button
+				type="submit"
+				variant="primary"
+				class="w-full"
+				disabled={!isValidAmount(amount) || loading}
+			>
 				{loading ? 'Wird gespeichert...' : 'Speichern'}
 			</Button>
 		</div>

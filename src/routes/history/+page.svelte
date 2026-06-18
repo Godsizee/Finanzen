@@ -440,7 +440,9 @@
 			<section class="animate-in fade-in duration-300">
 				{#if filteredUnsettled.length === 0}
 					<p class="px-1 py-8 text-center text-sm text-slate-400">
-						Keine passenden offenen Ausgaben.
+						{hasActiveFilters
+							? 'Keine offenen Ausgaben gefunden. Passe die Filter an oder setze sie zurück.'
+							: 'Keine offenen Ausgaben. Neue Buchungen erfasst du über das +.'}
 					</p>
 				{/if}
 				<div class="flex flex-col gap-3">
@@ -550,7 +552,9 @@
 			<section class="animate-in fade-in opacity-90 duration-300">
 				{#if filteredSettled.length === 0}
 					<p class="px-1 py-8 text-center text-sm text-slate-400">
-						Bisher keine passenden abgerechneten Transaktionen.
+						{hasActiveFilters
+							? 'Keine abgerechneten Buchungen gefunden. Passe die Filter an oder setze sie zurück.'
+							: 'Bisher wurde noch nichts abgerechnet.'}
 					</p>
 				{/if}
 				<div class="flex flex-col gap-3">

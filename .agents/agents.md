@@ -13,7 +13,7 @@ Dieser Workspace besteht aus **zwei Ordnern**:
 | **Code-Projekt** (auf GitHub gespiegelt) | `c:\xampp\htdocs\files\Finanzen\` |
 | **Obsidian Vault** (Doku, Notizen, TODOs) | `C:\Users\bades\OneDrive\Desktop\Ideen\` |
 
-Projektordner im Vault: `Projekte\finanzen\`
+Projektordner im Vault: `02 Projekte\FairShare\`
 
 ---
 
@@ -23,7 +23,7 @@ Projektordner im Vault: `Projekte\finanzen\`
 
 Lese:
 ```
-C:\Users\bades\OneDrive\Desktop\Ideen\Projekte\finanzen\Recent.md
+C:\Users\bades\OneDrive\Desktop\Ideen\02 Projekte\FairShare\Recent.md
 ```
 
 **Am Ende jeder Session — als allerletzte Aktion:**
@@ -55,9 +55,9 @@ Ein Satz: Was war der Ausgangspunkt / Wunsch des Nutzers?
 
 | Inhalt | Pfad (relativ zu Vault-Root) |
 |---|---|
-| Session-Log | `Projekte\finanzen\Recent.md` |
-| Technische Dokumentation | `Projekte\finanzen\Documentation.md` |
-| Tasks / TODOs | `Projekte\finanzen\tasks\` |
+| Session-Log | `02 Projekte\FairShare\Recent.md` |
+| Technische Dokumentation | `02 Projekte\FairShare\Documentation.md` |
+| Backlog & Status | `02 Projekte\FairShare\FairShare_Backlog.md` |
 
 ---
 
