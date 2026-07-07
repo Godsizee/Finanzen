@@ -151,6 +151,7 @@ class TransactionStore {
 	}
 
 	async load() {
+		if (!authStore.isLoggedIn) return;
 		this.loading = true;
 		this.error = null;
 		this.initSync();

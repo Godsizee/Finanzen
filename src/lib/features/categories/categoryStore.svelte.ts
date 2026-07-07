@@ -8,6 +8,7 @@ class CategoryStore {
 	error = $state<string | null>(null);
 
 	async load() {
+		if (!authStore.isLoggedIn) return;
 		this.loading = true;
 		this.error = null;
 		try {

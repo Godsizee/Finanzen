@@ -22,6 +22,7 @@ class RecurringStore {
 	generating = $state(false);
 
 	async load() {
+		if (!authStore.isLoggedIn) return;
 		this.loading = true;
 		this.error = null;
 		try {
