@@ -6,7 +6,7 @@
 C:\Users\bades\OneDrive\Desktop\Ideen\
 ```
 
-Projektordner: `Projekte\finanzen\`
+Projektordner: `02 Projekte\FairShare\`
 
 ---
 
@@ -15,8 +15,10 @@ Projektordner: `Projekte\finanzen\`
 **Immer als erste Aktion.**
 
 ```
-C:\Users\bades\OneDrive\Desktop\Ideen\Projekte\finanzen\Recent.md
+C:\Users\bades\OneDrive\Desktop\Ideen\02 Projekte\FairShare\Recent.md
 ```
+
+Optional davor: `_ai\project-context.md` im selben Ordner für kompakten Projektkontext (Stack, Pfade, aktive Baustellen).
 
 Ableiten:
 - Was wurde zuletzt geändert?
@@ -58,27 +60,13 @@ Ein Satz zum Ausgangspunkt.
 
 ## Tasks anlegen
 
+Kein separates `tasks/`-Verzeichnis. Alle Aufgaben leben in:
+
 ```
-C:\Users\bades\OneDrive\Desktop\Ideen\Projekte\finanzen\tasks\FS-XXX_Kurztitel.md
+C:\Users\bades\OneDrive\Desktop\Ideen\02 Projekte\FairShare\FairShare_Backlog.md
 ```
 
-```markdown
----
-tags: [Finanzen, task]
-status: open
-created: YYYY-MM-DD
----
-
-# FS-XXX — Aufgabentitel
-
-## Kontext
-Warum ist diese Aufgabe nötig?
-
-## Akzeptanzkriterien
-- [ ] Kriterium 1
-
-## Notizen
-```
+Format: P0–P4-Priorität mit `- [ ]`/`- [x]`-Checklisten je Abschnitt (siehe Datei selbst). Neue Aufgaben unter passende Priorität einsortieren, nicht als eigene Datei.
 
 ---
 

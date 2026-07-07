@@ -7,6 +7,7 @@ import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 import { recurringStore } from '$lib/features/recurring/store.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
 import { offlineStore } from '$lib/core/offlineStore.svelte';
+import { groupStore, GROUP_CHANGED_EVENT } from '$lib/features/groups/store.svelte';
 import { browser } from '$app/environment';
 
 class TransactionStore {
@@ -19,6 +20,8 @@ class TransactionStore {
 	initRealtime() {
 		if (this.unsubscribe) return;
 		this.unsubscribe = transactionApi.subscribe((e) => {
+			// Nur Events der aktiven Gruppe verarbeiten
+			if (e.record.group && e.record.group !== groupStore.activeGroupId) return;
 			if (e.action === 'create') {
 				if (!this.transactions.find((tx) => tx.id === e.record.id)) {
 					this.transactions = [e.record, ...this.transactions];
@@ -35,6 +38,7 @@ class TransactionStore {
 		if (!browser || this.syncListenerAdded) return;
 		this.syncListenerAdded = true;
 		window.addEventListener('fairshare_sync_queue', () => this.syncQueueOnline());
+		window.addEventListener(GROUP_CHANGED_EVENT, () => this.load());
 	}
 
 	async syncQueueOnline() {
@@ -151,6 +155,9 @@ class TransactionStore {
 		this.error = null;
 		this.initSync();
 		try {
+			// Aktive Gruppe muss vor dem Datenzugriff feststehen (Mandanten-Filter)
+			await groupStore.init();
+
 			// Trigger generation of due recurring expenses
 			try {
 				await recurringStore.generateDueTransactions();
@@ -158,7 +165,7 @@ class TransactionStore {
 				console.error('Error generating recurring transactions:', reErr);
 			}
 
-			this.transactions = await transactionApi.getAll();
+			this.transactions = await transactionApi.getAll(groupStore.activeGroupId ?? undefined);
 			this.initRealtime();
 		} catch (err: any) {
 			const appErr = handleAppError(err);
@@ -169,6 +176,9 @@ class TransactionStore {
 	}
 
 	async addTransaction(data: TransactionCreate) {
+		// Buchung immer der aktiven Gruppe zuordnen (auch in der Offline-Queue)
+		if (!data.group && groupStore.activeGroupId) data.group = groupStore.activeGroupId;
+
 		// Optimistic UI update (mock ID for instant feedback)
 		const tempId = crypto.randomUUID();
 		const optimisticRecord = { ...data, id: tempId } as unknown as RecordModel;

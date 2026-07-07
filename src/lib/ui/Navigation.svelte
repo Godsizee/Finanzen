@@ -7,6 +7,7 @@
 	import { pb } from '$lib/core/pb';
 	import { toast } from '$lib/core/toastStore.svelte';
 	import { offlineStore } from '$lib/core/offlineStore.svelte';
+	import GroupSwitcher from '$lib/features/groups/components/GroupSwitcher.svelte';
 
 	let currentPath = $derived($page.url.pathname);
 	let queueCount = $derived(offlineStore.queue.length);
@@ -120,6 +121,11 @@
 			{queueCount} {queueCount === 1 ? 'Buchung' : 'Buchungen'} offline
 		</div>
 	{/if}
+
+	<!-- Group Switcher in Desktop Sidebar -->
+	<div class="border-t border-slate-800 p-4">
+		<GroupSwitcher variant="dark" />
+	</div>
 
 	<!-- Cost Sharing Mode Switcher in Desktop Sidebar -->
 	<div class="border-t border-slate-800 p-4 mt-auto">

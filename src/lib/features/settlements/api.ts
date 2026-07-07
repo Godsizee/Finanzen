@@ -6,12 +6,14 @@ export interface SettlementCreate {
 	amount: number;
 	created_by: string;
 	settled_with: string;
+	group?: string; // Group ID (Mandant)
 }
 
 export const settlementApi = {
-	async getAll(): Promise<RecordModel[]> {
+	async getAll(groupId?: string): Promise<RecordModel[]> {
 		return await pb.collection('settlements').getFullList({
-			sort: '-date'
+			sort: '-date',
+			...(groupId ? { filter: pb.filter('group = {:g}', { g: groupId }) } : {})
 		});
 	},
 

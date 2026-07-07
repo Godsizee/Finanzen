@@ -38,7 +38,9 @@ export function getDueDates(
 		current.setUTCDate(Math.min(dayOfMonth, maxDay));
 	}
 
-	const today = new SvelteDate();
+	// Date.now() statt parameterlosem Konstruktor: SvelteDate erweitert das bei
+	// Import gebundene Date, wodurch vi.setSystemTime() im Test sonst nicht greift
+	const today = new SvelteDate(Date.now());
 	today.setUTCHours(12, 0, 0, 0);
 
 	const dueDates: Date[] = [];

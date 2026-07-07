@@ -10,6 +10,8 @@
 	import TransactionList from '$lib/features/transactions/components/TransactionList.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
+	import { groupStore } from '$lib/features/groups/store.svelte';
+	import GroupSwitcher from '$lib/features/groups/components/GroupSwitcher.svelte';
 	import { Plus, User, Users, ArrowRight, CalendarDays, Coins } from '@lucide/svelte';
 	import { formatCurrency } from '$lib/core/math';
 	import Card from '$lib/ui/Card.svelte';
@@ -150,6 +152,13 @@
 			</a>
 		</div>
 	</header>
+
+	{#if groupStore.groups.length > 1}
+		<!-- Mobiler Gruppen-Switcher (Desktop hat ihn in der Sidebar) -->
+		<div class="mb-4 px-1 md:hidden">
+			<GroupSwitcher variant="light" />
+		</div>
+	{/if}
 
 	<div class="flex flex-col gap-4 overflow-y-auto pb-24">
 		<HeroCard />

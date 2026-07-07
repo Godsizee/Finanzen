@@ -37,6 +37,9 @@ class AuthStore {
 
 	logout() {
 		authApi.logout();
+		// Gruppen-Zustand des abgemeldeten Users verwerfen (dynamischer Import
+		// vermeidet einen Import-Zyklus mit dem groupStore)
+		import('$lib/features/groups/store.svelte').then((m) => m.groupStore.reset());
 		toast.info('Erfolgreich abgemeldet.');
 	}
 }

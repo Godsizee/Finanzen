@@ -12,13 +12,15 @@ export interface RecurringExpenseCreate {
 	start_date: string;
 	last_generated?: string | null;
 	active: boolean;
+	group?: string; // Group ID (Mandant)
 }
 
 export const recurringApi = {
-	async getAll(): Promise<RecordModel[]> {
+	async getAll(groupId?: string): Promise<RecordModel[]> {
 		return await pb.collection('recurring_expenses').getFullList({
 			sort: '-start_date',
-			expand: 'category'
+			expand: 'category',
+			...(groupId ? { filter: pb.filter('group = {:g}', { g: groupId }) } : {})
 		});
 	},
 

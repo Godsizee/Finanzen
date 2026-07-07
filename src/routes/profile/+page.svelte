@@ -506,6 +506,21 @@
 		</form>
 	</div>
 
+	<!-- Gruppen Bereich -->
+	<a
+		href="/groups"
+		class="flex items-center justify-between rounded-2xl bg-white p-6 shadow-sm transition-colors hover:bg-slate-50"
+	>
+		<div class="flex items-center gap-2">
+			<Users class="h-5 w-5 text-slate-900" />
+			<div>
+				<h3 class="text-lg font-bold text-slate-900">Gruppen</h3>
+				<p class="text-xs text-slate-500">Gruppen verwalten, wechseln und Mitglieder einladen</p>
+			</div>
+		</div>
+		<span class="text-sm font-medium text-slate-400">→</span>
+	</a>
+
 	<!-- Partner Bereich -->
 	<div class="space-y-6 rounded-2xl bg-white p-6 shadow-sm">
 		<h3 class="flex items-center gap-2 text-lg font-bold text-slate-900">

@@ -4,6 +4,7 @@
 	import Toaster from '$lib/ui/Toaster.svelte';
 	import { authStore } from '$lib/features/auth/authStore.svelte';
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
+	import { groupStore } from '$lib/features/groups/store.svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 
@@ -44,6 +45,7 @@
 				goto('/verify-email');
 			} else if (!isUnverified) {
 				partnerStore.loadPartnerStatus();
+				groupStore.init();
 				const needsOnboarding = authStore.currentUser && !authStore.currentUser.onboarded;
 				if (needsOnboarding && path !== '/onboarding') {
 					goto('/onboarding');

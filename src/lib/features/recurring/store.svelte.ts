@@ -3,6 +3,7 @@ import { transactionApi } from '$lib/features/transactions/api';
 import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
+import { groupStore } from '$lib/features/groups/store.svelte';
 import { SvelteDate } from 'svelte/reactivity';
 import { generateDeterministicId } from '$lib/core/math';
 import { getDueDates } from './dateUtils';
@@ -24,7 +25,8 @@ class RecurringStore {
 		this.loading = true;
 		this.error = null;
 		try {
-			this.expenses = await recurringApi.getAll();
+			await groupStore.init();
+			this.expenses = await recurringApi.getAll(groupStore.activeGroupId ?? undefined);
 		} catch (err) {
 			const appErr = handleAppError(err);
 			this.error = appErr.message;
@@ -35,6 +37,7 @@ class RecurringStore {
 
 	async create(data: Parameters<typeof recurringApi.create>[0]) {
 		try {
+			if (!data.group && groupStore.activeGroupId) data.group = groupStore.activeGroupId;
 			const record = await recurringApi.create(data);
 			this.expenses = [record, ...this.expenses];
 			toast.success('Wiederkehrende Ausgabe angelegt');
@@ -93,7 +96,8 @@ class RecurringStore {
 
 		try {
 			// Reload rules to make sure we have the latest state
-			const rules = await recurringApi.getAll();
+			await groupStore.init();
+			const rules = await recurringApi.getAll(groupStore.activeGroupId ?? undefined);
 			this.expenses = rules;
 
 			const activeRules = rules.filter((r) => r.active);
@@ -125,7 +129,8 @@ class RecurringStore {
 							paid_by: rule.paid_by,
 							split_mode: rule.split_mode,
 							note: rule.name,
-							category: rule.category
+							category: rule.category,
+							group: rule.group || groupStore.activeGroupId || ''
 						});
 					} catch (err: any) {
 						if (err.status === 400 || err.message?.includes('constraint') || err.message?.includes('already exists')) {
@@ -160,6 +165,8 @@ class RecurringStore {
 
 	subscribe() {
 		const unsubscribe = recurringApi.subscribe((e) => {
+			// Nur Events der aktiven Gruppe verarbeiten
+			if (e.record.group && e.record.group !== groupStore.activeGroupId) return;
 			if (e.action === 'create') {
 				if (!this.expenses.some((x) => x.id === e.record.id)) {
 					this.expenses = [e.record, ...this.expenses];

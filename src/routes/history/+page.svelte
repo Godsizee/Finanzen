@@ -5,6 +5,7 @@
 	import { partnerStore } from '$lib/features/auth/partnerStore.svelte';
 	import { categoryStore } from '$lib/features/categories/categoryStore.svelte';
 	import { settlementApi } from '$lib/features/settlements/api';
+	import { groupStore } from '$lib/features/groups/store.svelte';
 	import { formatCurrency, getTransactionShare } from '$lib/core/math';
 	import { toast } from '$lib/core/toastStore.svelte';
 	import { pb } from '$lib/core/pb';
@@ -114,6 +115,7 @@
 				amount,
 				created_by: myId,
 				settled_with: partnerId,
+				group: groupStore.activeGroupId || '',
 				status: 'bezahlt',
 				payer: payerId,
 				receiver: receiverId,

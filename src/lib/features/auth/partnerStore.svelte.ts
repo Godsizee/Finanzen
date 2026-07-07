@@ -82,6 +82,14 @@ class PartnerStore {
 			authStore.currentUser = updatedMe;
 			toast.success('Partnerschaft erfolgreich bestätigt!');
 			await this.loadPartnerStatus();
+
+			// M1: Partner teilen sich eine gemeinsame Gruppe (Mandant)
+			try {
+				const { groupStore } = await import('$lib/features/groups/store.svelte');
+				await groupStore.createSharedGroupWithPartner(this.partnerUser.id);
+			} catch (err) {
+				console.error('Gemeinsame Gruppe konnte nicht erstellt werden', err);
+			}
 		} catch {
 			toast.error('Fehler beim Bestätigen der Partnerschaft.');
 		}
