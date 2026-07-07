@@ -2,6 +2,7 @@ import { recurringApi } from './api';
 import { transactionApi } from '$lib/features/transactions/api';
 import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
+import { authStore } from '$lib/features/auth/authStore.svelte';
 import { handleAppError } from '$lib/core/errorHandler';
 import { groupStore } from '$lib/features/groups/store.svelte';
 import { SvelteDate } from 'svelte/reactivity';

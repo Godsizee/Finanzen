@@ -1,7 +1,7 @@
 import { categoryApi } from './api';
 import type { RecordModel } from 'pocketbase';
 import { toast } from '$lib/core/toastStore.svelte';
-
+import { authStore } from '$lib/features/auth/authStore.svelte';
 class CategoryStore {
 	categories = $state<RecordModel[]>([]);
 	loading = $state(false);
