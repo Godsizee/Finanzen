@@ -10,7 +10,7 @@ export interface CategoryCreate {
 export const categoryApi = {
 	async getAll(): Promise<RecordModel[]> {
 		return await pb.collection('categories').getFullList({
-			sort: 'name'
+			sort: '+name'
 		});
 	},
 

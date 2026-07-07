@@ -20,7 +20,7 @@ export function generateInviteCode(): string {
 export const groupApi = {
 	/** Alle Gruppen, in denen der eingeloggte User Mitglied ist (via listRule). */
 	async getMyGroups(): Promise<RecordModel[]> {
-		return await pb.collection('groups').getFullList({ sort: 'created' });
+		return await pb.collection('groups').getFullList({ sort: '-created' });
 	},
 
 	async getOne(id: string): Promise<RecordModel> {
@@ -39,7 +39,7 @@ export const groupApi = {
 		return await pb.collection('group_members').getFullList({
 			filter: pb.filter('group = {:g}', { g: groupId }),
 			expand: 'user',
-			sort: 'created'
+			sort: '-created'
 		});
 	},
 
